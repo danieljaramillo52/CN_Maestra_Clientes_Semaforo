@@ -1,0 +1,1 @@
+# Transformación de objetos de data. (Pandas / numpy).
