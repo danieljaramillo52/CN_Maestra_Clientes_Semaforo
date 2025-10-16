@@ -1,0 +1,101 @@
+# Configuración base de la aplicación.
+insumos:
+  directa:
+    path: "Insumos/Directa/"
+    universo_directa:
+      nom_base: "Universo de Clientes - Directa.xlsb"
+      nom_hoja: "Maestra"
+      cols: &cols_directa
+      renombrar_cols: {
+          "Cód. Cliente": "Cod Cliente",
+          "Razon_Social": "Razón Social",
+          "Nombre Cliente": "Nombre Comercial",
+          "Población": "Municipio",
+          "Cód. Región": "Cód. Departamento",
+          "Dirección": "Dirección",
+          "Distrito": "Barrio",
+          "Cód. Of. Vtas": "Cód. Oficina de Ventas",
+          "Función Inter.": "Función Inter.",
+          "Cód. Vendedor": "Cód. Vendedor",
+          "Of. de Ventas": "Oficina de Ventas",
+          "Regional": "Regional",
+          "Región": "Región",
+          "Canal Trans": "Canal Transformado",
+          "Subcanal trans": "Subcanal Transformado",
+          "Segmento Trans": "Segmento Transformado",
+          "Nombre Vendedor": "Nombre Vendedor",
+          "Cód. Jefe Vtas": "Cód. Jefe de Ventas",
+          "Nombre Jefe Ventas": "Jefe de Ventas",
+      }
+      orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+    base_inicio_mes_dir:
+      nom_base: "Base Inicio Mes - Directa.xlsx"
+      nom_hoja: "Clientes_Activos_AGCO"
+      cols: &cols_bas_in_mes_dir
+      renombrar_cols: {
+        "Nºcliente": "Cod Cliente",
+        "Nombre 1": "Razon Social",
+        "Coment referentes di": "Nombre Comercial",
+        "Población": "Municipio",
+        "Región": "Cód. Departamento",
+        "Calle y nº": "Dirección",
+        "Distrito": "Barrio",
+        "Ofic venta": "Cód. Oficina de Ventas",
+        "Canal dist": "Cód. Canal Transformado",
+        "Grup clien": "Cód. Sub Canal Transformado",
+        "Grupo clie": "Cód. Segmento Transformado",
+        "Función in": "Función Inter.",
+        "Núm person": "Cód. Jefe de Ventas",
+        "Nombre de pila": "Jefe de Ventas",
+        "Coordenada X": "Coordenada X",
+        "Coordenada Y": "Coordenada Y"
+      }
+      orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+  indirecta:
+    path: "Insumos/Indirecta/"
+    universo_indirecta:
+      nom_base: "Universo de Clientes - Indirecta.xlsx"
+      nom_hoja: "Consolidado"
+      cols: &cols_indirecta
+      renombrar_cols: 
+        "a" : "a"
+    base_inicio_mes_indir:
+      nom_base: "Base Inicio Mes - Indirecta.xlsx"
+      nom_hoja: "Consolidado"
+      cols: &cols_bas_in_mes_indir
+      renombrar_cols: 
+        "a" : "a"
+  drivers:
+    nom_base: "Consulta Diaria Ventas - Snackeros.xlsx"
+    nom_hojas: "Consolidado"
+    cols: &cols_drivers
+    renombrar_cols: 
+
+dict_cols : {
+    "cod_cliente": "Cod Cliente",
+    "nombre_razon": "Razon Social",
+    "nombre_comercial": "Nombre Comercial",
+    "municipio": "Municipio",
+    "departamento": "Cód. Departamento",
+    "direccion": "Dirección",
+    "barrio": "Barrio",
+    "cod_oficina": "Cód. Oficina de Ventas",
+    "canal": "Cód. Canal Transformado",
+    "subcanal": "Cód. Sub Canal Transformado",
+    "segmento": "Cód. Segmento Transformado",
+    "funcion_inter": "Función Inter.",
+    "cod_vendedor": "Cód. Vendedor",
+    "nom_vendedor": "Nombre Vendedor",
+    "oficina_ventas": "Oficina de Ventas",
+    "regional": "Regional",
+    "region": "Región",
+    "cod_jefe_vtas": "Cód. Jefe de Ventas",
+    "nom_jefe_vtas": "Jefe de Ventas",
+    "coord_x": "Coordenada X",
+    "coord_y": "Coordenada Y",
+}
+
+
+resultados:
+  path_resultado: "Resultados\\"
+
