@@ -134,7 +134,7 @@ def lectura_insumos_excel(
         Tuple[pd.DataFrame, str]: DataFrame leído y mensaje de éxito.
     """
     try:
-        nrows = 12 if modo_pruebas else None
+        nrows = 100 if modo_pruebas else None
         logger.info(f"Iniciando lectura {nom_insumo} Hoja: {nom_hoja}")
 
         base_leida = pd.read_excel(
@@ -152,6 +152,39 @@ def lectura_insumos_excel(
     except Exception as e:
         logger.error(f"Error leyendo {nom_insumo} Hoja: {nom_hoja} → {e}")
         raise
+
+
+@registro_tiempo
+def lectura_simple_excel(
+    dir_insumo: str, nom_insumo: str, nom_hoja: str = None
+) -> pd.DataFrame:
+    """
+    Lee un archivo de Excel y devuelve su contenido en un DataFrame.
+
+    Args:
+        dir_insumo (str): Ruta del directorio donde se encuentra el archivo.
+        nom_insumo (str): Nombre del archivo de Excel (incluyendo la extensión).
+        nom_hoja (str): Nombre de la hoja a leer dentro del archivo de Excel.
+
+    Returns:
+        pd.DataFrame: Contenido de la hoja de Excel como un DataFrame.
+
+    Raises:
+        Exception: Si ocurre algún error durante la lectura del archivo.
+    """
+
+    try:
+        logger.info(f"Inicio lectura simple de {nom_insumo}")
+        base_leida = pd.read_excel(
+            dir_insumo + nom_insumo,
+            sheet_name=nom_hoja,
+            dtype=str,
+        )
+        mensaje = f"Lectura simple de {nom_insumo} realizada con éxito"
+        return base_leida, mensaje
+    except Exception as e:
+        logger.error(f"Proceso de lectura fallido: {e}")
+        raise Exception(f"Error al leer el archivo: {e}")
 
 
 def crear_diccionario_desde_dataframe(

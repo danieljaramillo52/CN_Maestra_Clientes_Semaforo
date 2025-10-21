@@ -1,4 +1,5 @@
 from loguru import logger
+from pandas import DataFrame, merge
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
 import Utils.proyect_functions as proy_ft
@@ -7,9 +8,12 @@ import Utils.proyect_functions as proy_ft
 class ProcesoDirecta:
     """Proceso para la parte Directa del proyecto."""
 
-    def __init__(self, cfg_directa: dict, cfg_cols: dict):
+    def __init__(
+        self, cfg_directa: dict, cfg_cols: dict, dict_drivers: dict[str, DataFrame]
+    ):
         self.cfg = cfg_directa
         self.cfg_cols = cfg_cols
+        self.dict_drivers = dict_drivers
 
     def ejecutar(self):
         logger.info("\n=== Iniciando proceso DIRECTA ===")
@@ -22,7 +26,7 @@ class ProcesoDirecta:
             path=self.cfg["path"],
             nom_insumo=self.cfg["universo_directa"]["nom_base"],
             nom_hoja=self.cfg["universo_directa"]["nom_hoja"],
-            modo_pruebas=True,
+            modo_pruebas=False,
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
         )
@@ -31,23 +35,15 @@ class ProcesoDirecta:
             path=self.cfg["path"],
             nom_insumo=self.cfg["base_inicio_mes_dir"]["nom_base"],
             nom_hoja=self.cfg["base_inicio_mes_dir"]["nom_hoja"],
-            modo_pruebas=True,
+            modo_pruebas=False,
             cols=COLS_BASE_IN_MES,
         )
 
-        # Seleccionar y renombrar cols bases.
-        # df_ini_mes = tf.seleccionar_columnas_pd(
-        #    df=df_ini_mes,
-        #    cols_elegidas=[*self.cfg["base_inicio_mes_dir"]["renombrar_cols"]],
-        # )
         df_ini_mes = tf.renombrar_columnas_con_diccionario(
             df=df_ini_mes,
             cols_to_rename=self.cfg["base_inicio_mes_dir"]["renombrar_cols"],
         )
-        # df_unviverso = tf.seleccionar_columnas_pd(
-        #    df=df_unviverso,
-        #    cols_elegidas=[*self.cfg["universo_directa"]["renombrar_cols"]],
-        # )
+
         df_unviverso = tf.renombrar_columnas_con_diccionario(
             df=df_unviverso,
             cols_to_rename=self.cfg["universo_directa"]["renombrar_cols"],
@@ -55,6 +51,12 @@ class ProcesoDirecta:
         # Eliminar duplicados por orden de prioridad cód vendedor.
         df_ini_mes_fil = proy_ft.eliminar_duplicados_por_prioridad(
             df=df_ini_mes,
+            col_clave=self.cfg_cols["cod_cliente"],
+            col_prioridad=self.cfg_cols["funcion_inter"],
+            orden_prioridad=self.cfg["universo_directa"]["orden_prioridad_jv_vend"],
+        )
+        df_unviverso_fil = proy_ft.eliminar_duplicados_por_prioridad(
+            df=df_unviverso,
             col_clave=self.cfg_cols["cod_cliente"],
             col_prioridad=self.cfg_cols["funcion_inter"],
             orden_prioridad=self.cfg["universo_directa"]["orden_prioridad_jv_vend"],
@@ -73,8 +75,104 @@ class ProcesoDirecta:
         df_ini_mes_fil = tf.reemplazar_columna_en_funcion_de_otra(
             df=df_ini_mes_fil,
             nom_columna_de_referencia=self.cfg_cols["cod_jefe_vtas"],
-            nom_columna_a_reemplazar=["nom_jefe_vtas"],
+            nom_columna_a_reemplazar=self.cfg_cols["nom_jefe_vtas"],
             mapeo=dict_reemplazos_jv,
         )
-        # Duplicar las columnas lógica vendedor y nom vendedor.
+
+        # Duplicar columnas constantes.
+        df_ini_mes_fil = tf.duplicar_columnas_cfg(
+            df=df_ini_mes_fil,
+            duplicaciones=self.cfg["base_inicio_mes_dir"]["cols_duplicar"],
+        )
+
+        # df_ini_mes_fil.loc[:, self.cfg_cols["cod_vendedor"]] = df_ini_mes_fil[
+        #    self.cfg_cols["cod_jefe_vtas"]
+        # ]
+        #
+        # df_ini_mes_fil.loc[:, self.cfg_cols["nom_vendedor"]] = df_ini_mes_fil[
+        #    self.cfg_cols["nom_jefe_vtas"]
+        # ]
+        #
+        # df_ini_mes_fil.loc[:, self.cfg_cols["cod_actual"]] = df_ini_mes_fil[
+        #    self.cfg_cols["cod_cliente"]
+        # ]
+        # df_ini_mes_fil.loc[:, self.cfg_cols["cliente"]] = df_ini_mes_fil[
+        #    self.cfg_cols["cod_cliente"]
+        # ]
+
+        # Extraer la tabla de tipologías del diccionario de drivers
+        drv_tipologias = self.dict_drivers.get("Tipologías")
+
+        #  Diccionario con las configuraciones de columnas
+        par_cols = self.cfg["base_inicio_mes_dir"]["par_cols_merge_drv_tipologia"]
+
+        #  DataFrame base
+        df_result = df_ini_mes_fil.copy()
+
+        # Iterar sobre cada grupo (canal, subcanal, segmento)
+        for _, cols in par_cols.items():
+            # Primer elemento es la llave código (para el merge)
+            col_codigo = cols[0]
+
+            # Extraer la parte relevante del driver y limpiar nulos
+            df_drv = tf.seleccionar_columnas_pd(
+                drv_tipologias, cols_elegidas=cols
+            ).dropna(subset=[col_codigo])
+
+            # Merge left sin duplicar llaves
+            df_result = tf.pd_left_merge_two_keys(
+                base_left=df_result,
+                base_right=df_drv,
+                left_key=col_codigo,
+            )
+
+        df_ini_mes_merge = df_result
+
+        # Traer información de driver regional
+        drv_region = self.dict_drivers.get("Regionales")
+
+        df_ini_mes_merge_reg = tf.pd_left_merge_two_keys(
+            base_left=df_ini_mes_merge,
+            base_right=drv_region,
+            left_key=self.cfg_cols["cod_oficina"],
+        )
+        # Traer información del driver municipios (Universo / base inicio mes)
+        drv_municipios = self.dict_drivers.get("Municipios")
+
+        drv_municipios.loc[:, self.cfg_cols["municipio"]] = drv_municipios[
+            self.cfg_cols["municipio"]
+        ].str.capitalize()
+
+        # Tnasformación para relacionar municipio y departamento base y driver
+        df_ini_mes_merge_reg = merge(
+            left=df_ini_mes_merge_reg,
+            right=drv_municipios.drop(
+                columns=self.cfg_cols["municipio"]
+            ).drop_duplicates(
+                subset=[
+                    self.cfg_cols["cod_poblacion"],
+                    self.cfg_cols["cod_departamento"],
+                ]
+            ),
+            on=[
+                self.cfg_cols["cod_poblacion"],
+                self.cfg_cols["cod_departamento"],
+            ],
+            how="left",
+        )
+
+        # Pendiente Universo.
+        df_unviverso_merge = tf.pd_left_merge_two_keys(
+            base_left=df_unviverso_fil,
+            base_right=drv_municipios[["Municipio", "Departamento", "Tipo Población"]],
+            left_key=self.cfg_cols["municipio"],
+        )
+
+        df_ini_mes_merge_reg = tf.concatenar_columnas_pd(
+            dataframe=df_ini_mes_merge_reg,
+            cols_elegidas=[self.cfg_cols["coord_y"], self.cfg_cols["coord_x"]],
+            nueva_columna=self.cfg_cols["coord_unif"],
+            usar_separador=", ",
+        )
+
         logger.info("=== Proceso Directa finalizado ===\n")

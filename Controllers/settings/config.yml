@@ -1,5 +1,6 @@
 # Configuración base de la aplicación.
 insumos:
+
   directa:
     path: "Insumos/Directa/"
     universo_directa:
@@ -10,6 +11,7 @@ insumos:
           "Cód. Cliente": "Cod Cliente",
           "Razon_Social": "Razón Social",
           "Nombre Cliente": "Nombre Comercial",
+          #"Cód. Población" : "Cód. Población",
           "Población": "Municipio",
           "Cód. Región": "Cód. Departamento",
           "Dirección": "Dirección",
@@ -28,6 +30,7 @@ insumos:
           "Nombre Jefe Ventas": "Jefe de Ventas",
       }
       orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+
     base_inicio_mes_dir:
       nom_base: "Base Inicio Mes - Directa.xlsx"
       nom_hoja: "Clientes_Activos_AGCO"
@@ -36,6 +39,7 @@ insumos:
         "Nºcliente": "Cod Cliente",
         "Nombre 1": "Razon Social",
         "Coment referentes di": "Nombre Comercial",
+        "Cód. Población" : "Cód. Población",
         "Población": "Municipio",
         "Región": "Cód. Departamento",
         "Calle y nº": "Dirección",
@@ -50,7 +54,31 @@ insumos:
         "Coordenada X": "Coordenada X",
         "Coordenada Y": "Coordenada Y"
       }
+
+      # cols_duplicar: Lista donde cada elemento es un dict[str: list[str]]
+      cols_duplicar:
+        - origen: "Cód. Jefe de Ventas"
+          destinos: ["Cód. Vendedor"]
+        - origen: "Jefe de Ventas"
+          destinos: ["Nombre Vendedor"]
+        - origen: "Cod Cliente"
+          destinos: ["Cod Actual", "Cliente"]
+
       orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+      
+      # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
+      # Cada lista representa las columnas usadas en el merge.
+      par_cols_merge_drv_tipologia: &par_col_merge_tip
+        canal_transformado:
+          - Cód. Canal Transformado
+          - Canal Transformado
+        subcanal_transformado:
+          - Cód. Sub Canal Transformado
+          - Subcanal Transformado
+        segmento_transformado:
+          - Cód. Segmento Transformado
+          - Segmento Transformado
+
   indirecta:
     path: "Insumos/Indirecta/"
     universo_indirecta:
@@ -65,18 +93,21 @@ insumos:
       cols: &cols_bas_in_mes_indir
       renombrar_cols: 
         "a" : "a"
+      par_cols_merge_drv_tipologia: 
+        <<: *par_col_merge_tip
   drivers:
-    nom_base: "Consulta Diaria Ventas - Snackeros.xlsx"
-    nom_hojas: "Consolidado"
+    path: "Insumos/Drivers/"
+    nom_base: "Drivers Universos.xlsx"
     cols: &cols_drivers
-    renombrar_cols: 
+
 
 dict_cols : {
     "cod_cliente": "Cod Cliente",
     "nombre_razon": "Razon Social",
     "nombre_comercial": "Nombre Comercial",
+    "cod_poblacion" : "Cód. Población",
     "municipio": "Municipio",
-    "departamento": "Cód. Departamento",
+    "cod_departamento": "Cód. Departamento",
     "direccion": "Dirección",
     "barrio": "Barrio",
     "cod_oficina": "Cód. Oficina de Ventas",
@@ -84,15 +115,18 @@ dict_cols : {
     "subcanal": "Cód. Sub Canal Transformado",
     "segmento": "Cód. Segmento Transformado",
     "funcion_inter": "Función Inter.",
-    "cod_vendedor": "Cód. Vendedor",
-    "nom_vendedor": "Nombre Vendedor",
     "oficina_ventas": "Oficina de Ventas",
     "regional": "Regional",
     "region": "Región",
     "cod_jefe_vtas": "Cód. Jefe de Ventas",
     "nom_jefe_vtas": "Jefe de Ventas",
+    "cod_vendedor": "Cód. Vendedor",
+    "nom_vendedor": "Nombre Vendedor",
     "coord_x": "Coordenada X",
     "coord_y": "Coordenada Y",
+    "coord_unif" : "Coordenadas Unificado (Y-X)",
+    "cod_actual" : "Cod Actual",
+    "cliente" : "Cliente"
 }
 
 

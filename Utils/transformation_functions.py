@@ -2,7 +2,7 @@
 import pandas as pd
 from numpy import where
 from loguru import logger
-from typing import List
+from typing import List, Dict, Any
 from Utils.general_functions import registro_tiempo
 
 
@@ -59,6 +59,58 @@ def renombrar_columnas_con_diccionario(
         raise Exception
 
     return df_renombrado
+
+
+@registro_tiempo
+def pd_left_merge_two_keys(
+    base_left: pd.DataFrame,
+    base_right: pd.DataFrame,
+    left_key: str,
+    right_key: str | None = None,
+    drop_right_key: bool = True,
+) -> pd.DataFrame:
+    """Realiza un left join entre dos DataFrames de pandas.
+
+    Si no se especifica right_key, se asume que ambas bases comparten la misma llave.
+
+    Args:
+        base_left (pd.DataFrame): DataFrame base del join.
+        base_right (pd.DataFrame): DataFrame derecho con los datos complementarios.
+        left_key (str): Llave del DataFrame izquierdo.
+        right_key (str, optional): Llave del DataFrame derecho. Si es None, se usa left_key.
+        drop_right_key (bool, optional): Si es True, elimina la llave derecha después
+            del merge para conservar solo la izquierda. Por defecto True.
+
+    Returns:
+        pd.DataFrame: DataFrame resultante del merge.
+    """
+    if not isinstance(base_left, pd.DataFrame):
+        raise TypeError("El argumento base_left debe ser un DataFrame de pandas.")
+    if not isinstance(base_right, pd.DataFrame):
+        raise TypeError("El argumento base_right debe ser un DataFrame de pandas.")
+
+    # Si no se especifica right_key, asumir que es igual a left_key
+    right_key = right_key or left_key
+
+    try:
+        base = pd.merge(
+            left=base_left,
+            right=base_right,
+            how="left",
+            left_on=left_key,
+            right_on=right_key,
+        )
+        mensaje = "Proceso de merge satisfactorio"
+
+        # Si las llaves son distintas, puedes decidir conservar solo la izquierda
+        if drop_right_key and right_key in base.columns and right_key != left_key:
+            base = base.drop(columns=[right_key])
+
+    except pd.errors.MergeError as e:
+        logger.critical(f"Proceso de merge fallido: {e}")
+        raise e
+
+    return base, mensaje
 
 
 @registro_tiempo
@@ -147,3 +199,101 @@ def reemplazar_columna_en_funcion_de_otra(
         raise e
 
     return df, mensaje
+
+
+def concatenar_columnas_pd(
+    df: pd.DataFrame,
+    cols_elegidas: List[str],
+    nueva_columna: str,
+    usar_separador: bool = False,  # 🔹 Nuevo parámetro opcional (False por defecto)
+    separador: str = " : ",  # 🔹 Separador por defecto (espacio)
+) -> pd.DataFrame:
+    """
+    Concatena las columnas especificadas y agrega el resultado como una nueva columna al DataFrame.
+
+    Parámetros:
+    - dataframe (pd.DataFrame): DataFrame del cual se concatenarán las columnas.
+    - cols_elegidas (list): Lista de nombres de las columnas a concatenar.
+    - nueva_columna (str): Nombre de la nueva columna que contendrá el resultado de la concatenación.
+    - usar_separador (bool): Si es True, concatena las columnas con el separador definido en 'separador'.
+    - separador (str): Caracter usado para separar las columnas concatenadas (por defecto, espacio).
+
+    Retorna:
+    - pd.DataFrame: DataFrame con la nueva columna agregada.
+    """
+    try:
+        # Verificar si dataframe es un DataFrame de pandas
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("El argumento 'dataframe' debe ser un DataFrame de pandas.")
+
+        # Verificar si las columnas especificadas existen en el DataFrame
+        for col in cols_elegidas:
+            if col not in df.columns:
+                raise KeyError(f"La columna '{col}' no existe en el DataFrame.")
+
+        df_copy = df.copy()
+
+        # 🔹 Si usar_separador es True, concatenar con separador. Si no, concatenar normal.
+        if usar_separador:
+            df_copy.loc[:, nueva_columna] = (
+                df_copy[cols_elegidas].fillna("").agg(separador.join, axis=1)
+            )
+        else:
+            df_copy.loc[:, nueva_columna] = (
+                df_copy[cols_elegidas].fillna("").agg("".join, axis=1)
+            )
+
+        # Registrar el proceso
+        logger.info(
+            f"Columnas '{', '.join(cols_elegidas)}' concatenadas {'con separador' if usar_separador else 'sin separador'} y almacenadas en '{nueva_columna}'."
+        )
+
+        return df_copy
+
+    except Exception as e:
+        logger.error(f"Error en la concatenación de columnas: {e}")
+        return df
+
+
+def duplicar_columnas_cfg(
+    df: pd.DataFrame, duplicaciones: List[Dict[str, Any]]
+) -> pd.DataFrame:
+    """
+    Duplica valores entre columnas de un DataFrame según una configuración externa,
+    sin depender de un mapeo lógico (cfg_cols). Se espera que los nombres de columna
+    usados en la configuración correspondan directamente a los del DataFrame.
+
+    Args:
+        df (pd.DataFrame):
+            DataFrame sobre el cual se aplican las duplicaciones.
+        duplicaciones (List[Dict[str, Any]]):
+            Lista de reglas de duplicación cargada desde el YAML.
+
+    Returns:
+        pd.DataFrame:
+            El mismo DataFrame con las columnas duplicadas según la configuración.
+
+    Raises:
+        KeyError:
+            Si alguna columna origen o destino no existe en el DataFrame.
+        ValueError:
+            Si la lista de duplicaciones está vacía o mal estructurada.
+    """
+    if not duplicaciones:
+        raise ValueError("La lista de duplicaciones está vacía o no definida.")
+
+    for regla in duplicaciones:
+        origen = regla["origen"]
+        destinos = regla["destinos"]
+
+        if origen not in df.columns:
+            raise KeyError(f"La columna origen '{origen}' no existe en el DataFrame.")
+
+        for destino in destinos:
+            if destino not in df.columns:
+                # si no existe la crea automáticamente con el mismo contenido
+                df[destino] = df[origen]
+            else:
+                df.loc[:, destino] = df[origen]
+
+    return df
