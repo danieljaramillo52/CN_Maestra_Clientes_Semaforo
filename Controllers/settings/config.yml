@@ -66,6 +66,7 @@ insumos:
           destinos: ["Cod Actual", "Cliente"]
 
       orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+      path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
       
       # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
       # Cada lista representa las columnas usadas en el merge.
@@ -156,8 +157,10 @@ dict_cols : {
     "coord_unif" : "Coordenadas Unificado (Y-X)",
     "cod_actual" : "Cod Actual",
     "cliente" : "Cliente",
-    # Unica constante no columna. guión utilizado para rellenar nulos masivamente
-    "guion" : "-"
+    # Constantes no columnas. valor_nulo utilizado para rellenar nulos masivamente
+    "valor_nulo" : "N/A",
+    "valor_guion" : "-",
+    "valor_KAM" : "KAM",
 }
 
 

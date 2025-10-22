@@ -51,7 +51,7 @@ class ProcesoDirecta:
             df=df_ini_mes,
             col_clave=self.cfg_cols["cod_cliente"],
             col_prioridad=self.cfg_cols["funcion_inter"],
-            orden_prioridad=self.cfg["universo_directa"]["orden_prioridad_jv_vend"],
+            orden_prioridad=self.cfg["base_inicio_mes_dir"]["orden_prioridad_jv_vend"],
         )
         df_unviverso_fil = proy_ft.eliminar_duplicados_por_prioridad(
             df=df_unviverso,
@@ -154,11 +154,11 @@ class ProcesoDirecta:
         # Tratar datos de municipios para garantizar el cruce completo del mege
         drv_municipios.loc[:, self.cfg_cols["municipio"]] = drv_municipios[
             self.cfg_cols["municipio"]
-        ].str.lower()
+        ].str.upper()
 
         df_unviverso_fil.loc[:, self.cfg_cols["municipio"]] = df_unviverso_fil[
             self.cfg_cols["municipio"]
-        ].str.lower()
+        ].str.upper()
 
         # Tnasformación para relacionar municipio y departamento base y driver
         df_ini_mes_merge_reg = merge(
@@ -189,6 +189,29 @@ class ProcesoDirecta:
             objs=[df_unviverso_fil, df_ini_mes_merge_reg], join="inner"
         )
 
+        # Ajustar jefes de ventas y vendedores finales.
+        mask = (
+            df_base_completa[self.cfg_cols["cod_jefe_vtas"]]
+            == self.cfg_cols["valor_guion"]
+        ) & (
+            df_base_completa[self.cfg_cols["nom_jefe_vtas"]]
+            == self.cfg_cols["valor_guion"]
+        )
+
+        df_base_completa.loc[mask, self.cfg_cols["cod_jefe_vtas"]] = (
+            df_base_completa.loc[mask, self.cfg_cols["cod_vendedor"]]
+        )
+        df_base_completa.loc[mask, self.cfg_cols["nom_jefe_vtas"]] = (
+            df_base_completa.loc[mask, self.cfg_cols["nom_vendedor"]]
+        )
+
+        mask_kam = (
+            df_base_completa[self.cfg_cols["nom_jefe_vtas"]]
+            == self.cfg_cols["valor_KAM"]
+        )
+
+        df_base_completa.loc[mask_kam, self.cfg_cols["cod_jefe_vtas"]] = "1"
+
         # Extraer columnas que contienen nulos
         cols_con_nulos = df_base_completa.columns[
             df_base_completa.isna().any()
@@ -197,12 +220,12 @@ class ProcesoDirecta:
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_base_completa,
             list_columns=cols_con_nulos,
-            value=self.cfg_cols["guion"],
+            value=self.cfg_cols["valor_nulo"],
         )
         df_ini_mes_merge_reg = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_ini_mes_merge_reg,
             list_columns=cols_con_nulos,
-            value=self.cfg_cols["guion"],
+            value=self.cfg_cols["valor_nulo"],
         )
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
