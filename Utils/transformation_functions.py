@@ -297,3 +297,28 @@ def duplicar_columnas_cfg(
                 df.loc[:, destino] = df[origen]
 
     return df
+
+
+def remplazar_nulos_multiples_columnas_pd(
+    base: pd.DataFrame, list_columns: list, value: str
+) -> pd.DataFrame:
+    base_modificada = None
+    """Funcion que toma un dataframe, una lista de sus columnas para hacer un 
+        cambio en los datos nulos de las mismas.
+        Args:
+            base: Dataframe a base del cambio.
+            list_columns: Columnas a modificar su tipo de dato.
+            Value: valor del dato: (Notar, solo del tipo str.) 
+        Returns: 
+            base_modificada (copia de la base con los cambios.)
+        """
+    try:
+        base.loc[:, list_columns] = base[list_columns].fillna(value)
+        base_modificada = base
+        logger.success("cambio tipo de dato satisfactorio: ")
+
+    except Exception:
+        logger.critical("cambio tipo de dato fallido.")
+        raise Exception
+
+    return base_modificada

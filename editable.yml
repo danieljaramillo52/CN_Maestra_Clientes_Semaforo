@@ -1,3 +1,34 @@
 # Configuración editable del proyecto. (Manipulación de parámetros proyecto.)
-anio_inicial: "2025"
-anio_final: "2026"
+
+insumos:
+  directa:
+    # Orden final de columnas para el proceso de la directa. 
+    cols_finales_directa:
+      - "Cod Cliente"
+      - "Razón Social"
+      - "Nombre Comercial"
+      - "Cód. Jefe de Ventas"
+      - "Jefe de Ventas"
+      - "Función Inter."
+      - "Cód. Vendedor"
+      - "Nombre Vendedor"
+      - "Canal Transformado"
+      - "Subcanal Transformado"
+      - "Segmento Transformado"
+      - "Cód. Oficina de Ventas"
+      - "Oficina de Ventas"
+      - "Regional"
+      - "Región"
+      - "Dirección"
+      - "Barrio"
+      - "Municipio"
+      - "Departamento"
+      - "Tipo Población"
+      - "Coordenadas Unificado (Y-X)"
+      - "Cod Actual"
+      - "Cliente"
+    universo_directa:
+        orden_prioridad_jv_vend: ["ZA", "Z1"]
+    base_inicio_mes_dir:
+        orden_prioridad_jv_vend: ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]  
+    path_guardado : "Resultados/universo_directa_completo.xlsx"

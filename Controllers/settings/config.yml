@@ -1,6 +1,5 @@
 # Configuración base de la aplicación.
 insumos:
-
   directa:
     path: "Insumos/Directa/"
     universo_directa:
@@ -11,7 +10,6 @@ insumos:
           "Cód. Cliente": "Cod Cliente",
           "Razon_Social": "Razón Social",
           "Nombre Cliente": "Nombre Comercial",
-          #"Cód. Población" : "Cód. Población",
           "Población": "Municipio",
           "Cód. Región": "Cód. Departamento",
           "Dirección": "Dirección",
@@ -29,7 +27,10 @@ insumos:
           "Cód. Jefe Vtas": "Cód. Jefe de Ventas",
           "Nombre Jefe Ventas": "Jefe de Ventas",
       }
-      orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+      orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]
+      cols_duplicar:
+        - origen: "Cod Cliente"
+          destinos: ["Cod Actual", "Cliente"]
 
     base_inicio_mes_dir:
       nom_base: "Base Inicio Mes - Directa.xlsx"
@@ -37,7 +38,7 @@ insumos:
       cols: &cols_bas_in_mes_dir
       renombrar_cols: {
         "Nºcliente": "Cod Cliente",
-        "Nombre 1": "Razon Social",
+        "Nombre 1": "Razón Social",
         "Coment referentes di": "Nombre Comercial",
         "Cód. Población" : "Cód. Población",
         "Población": "Municipio",
@@ -78,6 +79,34 @@ insumos:
         segmento_transformado:
           - Cód. Segmento Transformado
           - Segmento Transformado
+    
+    # Orden final de columnas para el proceso de la directa. 
+    cols_finales_directa:
+      - "Cod Cliente"
+      - "Razón Social"
+      - "Nombre Comercial"
+      - "Cód. Jefe de Ventas"
+      - "Jefe de Ventas"
+      - "Función Inter."
+      - "Cód. Vendedor"
+      - "Nombre Vendedor"
+      - "Canal Transformado"
+      - "Subcanal Transformado"
+      - "Segmento Transformado"
+      - "Cód. Oficina de Ventas"
+      - "Oficina de Ventas"
+      - "Regional"
+      - "Región"
+      - "Dirección"
+      - "Barrio"
+      - "Municipio"
+      - "Departamento"
+      - "Tipo Población"
+      - "Coordenadas Unificado (Y-X)"
+      - "Cod Actual"
+      - "Cliente"
+
+    path_guardado : "Resultados/universo_directa_completo.xlsx"
 
   indirecta:
     path: "Insumos/Indirecta/"
@@ -126,7 +155,9 @@ dict_cols : {
     "coord_y": "Coordenada Y",
     "coord_unif" : "Coordenadas Unificado (Y-X)",
     "cod_actual" : "Cod Actual",
-    "cliente" : "Cliente"
+    "cliente" : "Cliente",
+    # Unica constante no columna. guión utilizado para rellenar nulos masivamente
+    "guion" : "-"
 }
 
 

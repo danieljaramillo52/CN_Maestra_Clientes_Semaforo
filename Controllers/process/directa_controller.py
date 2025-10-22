@@ -1,5 +1,5 @@
 from loguru import logger
-from pandas import DataFrame, merge
+from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
 import Utils.proyect_functions as proy_ft
@@ -26,7 +26,6 @@ class ProcesoDirecta:
             path=self.cfg["path"],
             nom_insumo=self.cfg["universo_directa"]["nom_base"],
             nom_hoja=self.cfg["universo_directa"]["nom_hoja"],
-            modo_pruebas=False,
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
         )
@@ -35,7 +34,6 @@ class ProcesoDirecta:
             path=self.cfg["path"],
             nom_insumo=self.cfg["base_inicio_mes_dir"]["nom_base"],
             nom_hoja=self.cfg["base_inicio_mes_dir"]["nom_hoja"],
-            modo_pruebas=False,
             cols=COLS_BASE_IN_MES,
         )
 
@@ -66,6 +64,31 @@ class ProcesoDirecta:
             df=df_ini_mes_fil, col=self.cfg_cols["cod_cliente"], n=2
         )
 
+        df_ini_mes_fil = tf.concatenar_columnas_pd(
+            df=df_ini_mes_fil,
+            cols_elegidas=[self.cfg_cols["coord_y"], self.cfg_cols["coord_x"]],
+            nueva_columna=self.cfg_cols["coord_unif"],
+            separador=", ",
+            usar_separador=True,
+        )
+
+        # Tomar columnas referentes a cordenadas
+        df_ini_mes_coord = tf.seleccionar_columnas_pd(
+            df=df_ini_mes_fil,
+            cols_elegidas=[self.cfg_cols["cod_cliente"], self.cfg_cols["coord_unif"]],
+        )
+        # Traer las coordenadas unificadas al universo.
+        df_unviverso_fil = tf.pd_left_merge_two_keys(
+            base_left=df_unviverso_fil,
+            base_right=df_ini_mes_coord,
+            left_key=self.cfg_cols["cod_cliente"],
+        )
+
+        # Tomar solo clientes que estan en base inicio mes y no en universo.
+        df_ini_mes_fil = df_ini_mes_fil[
+            ~df_ini_mes_fil["Cod Cliente"].isin(df_unviverso_fil["Cod Cliente"])
+        ]
+
         dict_reemplazos_jv = gf.crear_diccionario_desde_dataframe(
             df=df_unviverso,
             col_clave=self.cfg_cols["cod_jefe_vtas"],
@@ -84,21 +107,10 @@ class ProcesoDirecta:
             df=df_ini_mes_fil,
             duplicaciones=self.cfg["base_inicio_mes_dir"]["cols_duplicar"],
         )
-
-        # df_ini_mes_fil.loc[:, self.cfg_cols["cod_vendedor"]] = df_ini_mes_fil[
-        #    self.cfg_cols["cod_jefe_vtas"]
-        # ]
-        #
-        # df_ini_mes_fil.loc[:, self.cfg_cols["nom_vendedor"]] = df_ini_mes_fil[
-        #    self.cfg_cols["nom_jefe_vtas"]
-        # ]
-        #
-        # df_ini_mes_fil.loc[:, self.cfg_cols["cod_actual"]] = df_ini_mes_fil[
-        #    self.cfg_cols["cod_cliente"]
-        # ]
-        # df_ini_mes_fil.loc[:, self.cfg_cols["cliente"]] = df_ini_mes_fil[
-        #    self.cfg_cols["cod_cliente"]
-        # ]
+        df_unviverso_fil = tf.duplicar_columnas_cfg(
+            df=df_unviverso_fil,
+            duplicaciones=self.cfg["universo_directa"]["cols_duplicar"],
+        )
 
         # Extraer la tabla de tipologías del diccionario de drivers
         drv_tipologias = self.dict_drivers.get("Tipologías")
@@ -139,9 +151,14 @@ class ProcesoDirecta:
         # Traer información del driver municipios (Universo / base inicio mes)
         drv_municipios = self.dict_drivers.get("Municipios")
 
+        # Tratar datos de municipios para garantizar el cruce completo del mege
         drv_municipios.loc[:, self.cfg_cols["municipio"]] = drv_municipios[
             self.cfg_cols["municipio"]
-        ].str.capitalize()
+        ].str.lower()
+
+        df_unviverso_fil.loc[:, self.cfg_cols["municipio"]] = df_unviverso_fil[
+            self.cfg_cols["municipio"]
+        ].str.lower()
 
         # Tnasformación para relacionar municipio y departamento base y driver
         df_ini_mes_merge_reg = merge(
@@ -161,18 +178,34 @@ class ProcesoDirecta:
             how="left",
         )
 
-        # Pendiente Universo.
-        df_unviverso_merge = tf.pd_left_merge_two_keys(
-            base_left=df_unviverso_fil,
-            base_right=drv_municipios[["Municipio", "Departamento", "Tipo Población"]],
-            left_key=self.cfg_cols["municipio"],
+        df_unviverso_fil = merge(
+            left=df_unviverso_fil,
+            right=drv_municipios,
+            on=[self.cfg_cols["municipio"], self.cfg_cols["cod_departamento"]],
+            how="left",
         )
 
-        df_ini_mes_merge_reg = tf.concatenar_columnas_pd(
-            dataframe=df_ini_mes_merge_reg,
-            cols_elegidas=[self.cfg_cols["coord_y"], self.cfg_cols["coord_x"]],
-            nueva_columna=self.cfg_cols["coord_unif"],
-            usar_separador=", ",
+        df_base_completa = concat(
+            objs=[df_unviverso_fil, df_ini_mes_merge_reg], join="inner"
+        )
+
+        # Extraer columnas que contienen nulos
+        cols_con_nulos = df_base_completa.columns[
+            df_base_completa.isna().any()
+        ].tolist()
+
+        df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
+            base=df_base_completa,
+            list_columns=cols_con_nulos,
+            value=self.cfg_cols["guion"],
+        )
+
+        df_base_completa_select = tf.seleccionar_columnas_pd(
+            df=df_base_completa, cols_elegidas=self.cfg["cols_finales_directa"]
+        )
+
+        gf.exportar_a_excel(
+            ruta_archivo=self.cfg["path_guardado"], df=df_base_completa_select
         )
 
         logger.info("=== Proceso Directa finalizado ===\n")

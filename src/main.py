@@ -92,8 +92,8 @@ class Aplicacion:
 if __name__ == "__main__":
     app = Aplicacion()
 
-    # 🔹 Ejemplo: ejecutar solo Directa de forma parcial
+    # ejecutar solo Directa de forma parcial
     app.ejecutar_parcial("directa")
 
-    # 🔹 Ejemplo: ejecutar ambos procesos completos
+    # ejecutar ambos procesos completos
     # app.ejecutar_todo()

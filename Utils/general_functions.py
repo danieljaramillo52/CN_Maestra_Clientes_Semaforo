@@ -85,13 +85,14 @@ def registro_tiempo(original_func):
 
 @registro_tiempo
 def exportar_a_excel(
-    ruta_guardado: str, df: pd.DataFrame, nom_hoja: str, index: bool = False
+    ruta_archivo: str, df: pd.DataFrame, nom_hoja: str = "Hoja1", index: bool = False
 ) -> str:
     """
-    Exporta un DataFrame a Excel en la ruta especificada.
+    Exporta un DataFrame a un archivo Excel en la ruta completa especificada.
+    Si la carpeta destino no existe, se crea automáticamente.
 
     Args:
-        ruta_guardado (str): Carpeta donde se guardará el archivo.
+        ruta_archivo (str): Ruta completa del archivo (incluye el nombre y extensión .xlsx).
         df (pd.DataFrame): DataFrame a exportar.
         nom_hoja (str): Nombre de la hoja dentro del archivo.
         index (bool): Si se incluye o no el índice.
@@ -100,13 +101,18 @@ def exportar_a_excel(
         str: Mensaje de éxito para el log.
     """
     try:
-        Path(ruta_guardado).mkdir(parents=True, exist_ok=True)
-        df.to_excel(
-            f"{ruta_guardado}/{nom_hoja}.xlsx", sheet_name=nom_hoja, index=index
-        )
-        return f"Exportación de '{nom_hoja}' completada con éxito"
+        ruta = Path(ruta_archivo)
+
+        # Crear carpeta si no existe
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+
+        # Exportar el DataFrame
+        df.to_excel(ruta, sheet_name=nom_hoja, index=index)
+
+        return f"✅ Exportación completada: '{ruta.name}' con hoja '{nom_hoja}' en '{ruta.parent}'"
+
     except Exception as e:
-        logger.error(f"Error exportando '{nom_hoja}': {e}")
+        logger.error(f"❌ Error exportando '{ruta_archivo}': {e}")
         raise
 
 
