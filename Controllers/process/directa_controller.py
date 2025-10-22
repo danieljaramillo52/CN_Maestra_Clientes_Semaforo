@@ -199,13 +199,26 @@ class ProcesoDirecta:
             list_columns=cols_con_nulos,
             value=self.cfg_cols["guion"],
         )
+        df_ini_mes_merge_reg = tf.remplazar_nulos_multiples_columnas_pd(
+            base=df_ini_mes_merge_reg,
+            list_columns=cols_con_nulos,
+            value=self.cfg_cols["guion"],
+        )
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
             df=df_base_completa, cols_elegidas=self.cfg["cols_finales_directa"]
+        )
+
+        df_ini_mes_faltantes = tf.seleccionar_columnas_pd(
+            df=df_ini_mes_merge_reg, cols_elegidas=self.cfg["cols_finales_directa"]
         )
 
         gf.exportar_a_excel(
             ruta_archivo=self.cfg["path_guardado"], df=df_base_completa_select
         )
 
+        gf.exportar_a_excel(
+            ruta_archivo=self.cfg["base_inicio_mes_dir"]["path_guardado_faltantes_uni"],
+            df=df_ini_mes_faltantes,
+        )
         logger.info("=== Proceso Directa finalizado ===\n")

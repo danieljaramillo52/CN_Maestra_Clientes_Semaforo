@@ -30,5 +30,6 @@ insumos:
     universo_directa:
         orden_prioridad_jv_vend: ["ZA", "Z1"]
     base_inicio_mes_dir:
-        orden_prioridad_jv_vend: ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]  
+        orden_prioridad_jv_vend: ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]
+        path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
     path_guardado : "Resultados/universo_directa_completo.xlsx"
