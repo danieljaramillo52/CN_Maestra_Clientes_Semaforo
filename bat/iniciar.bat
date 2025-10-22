@@ -14,7 +14,7 @@ cd "..\python-3.12.5-emb"
 
 echo Instalando paquetes necesarios ...
 
-:: .\python -m pip install -r ..\requirements.txt --upgrade
+.\python -m pip install -r ..\requirements.txt --upgrade
 
 echo Instalacion finalizada cierre la ventana actual.
 pause
