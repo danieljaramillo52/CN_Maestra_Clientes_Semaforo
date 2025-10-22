@@ -1,0 +1,4 @@
+Directorio donde guardamos los insumos de la directa. 
+
+Base Inicio Mes - Directa.xlsx
+Universo de Clientes - Directa.xlsx
