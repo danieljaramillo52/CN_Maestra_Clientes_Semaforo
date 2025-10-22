@@ -217,6 +217,10 @@ class ProcesoDirecta:
             df_base_completa.isna().any()
         ].tolist()
 
+        df_base_completa[self.cfg_cols["coord_unif"]] = df_base_completa[
+            self.cfg_cols["coord_unif"]
+        ].replace(["0, 0", ", "], "-", regex=False)
+
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_base_completa,
             list_columns=cols_con_nulos,
