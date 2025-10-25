@@ -27,6 +27,7 @@ insumos:
       - "Coordenadas Unificado (Y-X)"
       - "Cod Actual"
       - "Cliente"
+      - "Fuente"
     universo_directa:
         orden_prioridad_jv_vend: ["ZA", "Z1"]
     base_inicio_mes_dir:

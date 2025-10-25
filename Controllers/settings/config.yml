@@ -80,7 +80,7 @@ insumos:
         segmento_transformado:
           - Cód. Segmento Transformado
           - Segmento Transformado
-    
+
     # Orden final de columnas para el proceso de la directa. 
     cols_finales_directa:
       - "Cod Cliente"
@@ -106,6 +106,7 @@ insumos:
       - "Coordenadas Unificado (Y-X)"
       - "Cod Actual"
       - "Cliente"
+      - "Fuente"
 
     path_guardado : "Resultados/universo_directa_completo.xlsx"
 

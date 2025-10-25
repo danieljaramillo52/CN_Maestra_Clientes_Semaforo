@@ -8,6 +8,10 @@ import Utils.proyect_functions as proy_ft
 class ProcesoDirecta:
     """Proceso para la parte Directa del proyecto."""
 
+    FUENTE = "Fuente"
+    VALOR_UNIVERSO = "universo"
+    VALOR_BASE_INICIO_MES = "base_inicio_mes"
+
     def __init__(
         self, cfg_directa: dict, cfg_cols: dict, dict_drivers: dict[str, DataFrame]
     ):
@@ -107,6 +111,7 @@ class ProcesoDirecta:
             df=df_ini_mes_fil,
             duplicaciones=self.cfg["base_inicio_mes_dir"]["cols_duplicar"],
         )
+
         df_unviverso_fil = tf.duplicar_columnas_cfg(
             df=df_unviverso_fil,
             duplicaciones=self.cfg["universo_directa"]["cols_duplicar"],
@@ -154,11 +159,11 @@ class ProcesoDirecta:
         # Tratar datos de municipios para garantizar el cruce completo del mege
         drv_municipios.loc[:, self.cfg_cols["municipio"]] = drv_municipios[
             self.cfg_cols["municipio"]
-        ].str.upper()
+        ].str.lower()
 
         df_unviverso_fil.loc[:, self.cfg_cols["municipio"]] = df_unviverso_fil[
             self.cfg_cols["municipio"]
-        ].str.upper()
+        ].str.lower()
 
         # Tnasformación para relacionar municipio y departamento base y driver
         df_ini_mes_merge_reg = merge(
@@ -184,6 +189,9 @@ class ProcesoDirecta:
             on=[self.cfg_cols["municipio"], self.cfg_cols["cod_departamento"]],
             how="left",
         )
+
+        df_unviverso_fil.loc[:, self.FUENTE] = self.VALOR_UNIVERSO
+        df_ini_mes_merge_reg.loc[:, self.FUENTE] = self.VALOR_BASE_INICIO_MES
 
         df_base_completa = concat(
             objs=[df_unviverso_fil, df_ini_mes_merge_reg], join="inner"
@@ -219,33 +227,25 @@ class ProcesoDirecta:
 
         df_base_completa[self.cfg_cols["coord_unif"]] = df_base_completa[
             self.cfg_cols["coord_unif"]
-        ].replace(["0, 0", ", "], "-", regex=False)
+        ].replace(["0, 0", ", "], self.cfg_cols["valor_guion"], regex=False)
 
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_base_completa,
             list_columns=cols_con_nulos,
             value=self.cfg_cols["valor_nulo"],
         )
-        df_ini_mes_merge_reg = tf.remplazar_nulos_multiples_columnas_pd(
-            base=df_ini_mes_merge_reg,
-            list_columns=cols_con_nulos,
-            value=self.cfg_cols["valor_nulo"],
-        )
+
+        # Tratar datos de municipios para homologar nombres
+        df_base_completa.loc[:, self.cfg_cols["municipio"]] = df_base_completa[
+            self.cfg_cols["municipio"]
+        ].str.upper()
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
             df=df_base_completa, cols_elegidas=self.cfg["cols_finales_directa"]
-        )
-
-        df_ini_mes_faltantes = tf.seleccionar_columnas_pd(
-            df=df_ini_mes_merge_reg, cols_elegidas=self.cfg["cols_finales_directa"]
         )
 
         gf.exportar_a_excel(
             ruta_archivo=self.cfg["path_guardado"], df=df_base_completa_select
         )
 
-        gf.exportar_a_excel(
-            ruta_archivo=self.cfg["base_inicio_mes_dir"]["path_guardado_faltantes_uni"],
-            df=df_ini_mes_faltantes,
-        )
         logger.info("=== Proceso Directa finalizado ===\n")

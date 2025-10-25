@@ -322,3 +322,53 @@ def remplazar_nulos_multiples_columnas_pd(
         raise Exception
 
     return base_modificada
+
+
+def conservar_n_caracteres(
+    df: pd.DataFrame, columnas: str | List[str], n_caracteres: int
+) -> pd.DataFrame:
+    """
+    Conserva únicamente los primeros `n_caracteres` de una o varias columnas
+    de texto en un DataFrame.
+
+    Si una celda contiene menos caracteres que el valor indicado, no se trunca.
+    En caso de error (columna inexistente o tipo no compatible), se registra
+    el fallo y se devuelve el DataFrame sin modificar.
+
+    Args:
+        df (pd.DataFrame): DataFrame con las columnas a modificar.
+        columnas (str | list[str]): Nombre o lista de nombres de las columnas a truncar.
+        n_caracteres (int): Número de caracteres a conservar desde el inicio de cada valor.
+
+    Returns:
+        pd.DataFrame: DataFrame con las columnas modificadas. Si ocurre un error,
+        se devuelve el DataFrame original sin cambios.
+
+    Example:
+        >>> df = conservar_n_caracteres(df, columnas="CodigoCliente", n_caracteres=5)
+    """
+    try:
+        df = df.copy()
+
+        if isinstance(columnas, str):
+            columnas = [columnas]
+
+        columnas_invalidas = [col for col in columnas if col not in df.columns]
+        if columnas_invalidas:
+            raise KeyError(f"Columnas inexistentes: {columnas_invalidas}")
+
+        # Aplicar truncamiento
+        df[columnas] = (
+            df[columnas].astype(str).apply(lambda col: col.str[:n_caracteres])
+        )
+
+        logger.info(
+            f"Se conservaron los primeros {n_caracteres} caracteres en columnas: {columnas}"
+        )
+        return df
+
+    except Exception as e:
+        logger.error(
+            f"Error al truncar columnas {columnas} a {n_caracteres} caracteres: {e}"
+        )
+        return df
