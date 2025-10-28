@@ -80,7 +80,7 @@ insumos:
           - Segmento Transformado
 
     # Orden final de columnas para el proceso de la directa. 
-    cols_finales_directa:
+    cols_finales: &cols_finales 
       - "Cod Cliente"
       - "Razón Social"
       - "Nombre Comercial"
@@ -118,7 +118,7 @@ insumos:
         cv_nombre_agente_comercial: "Jefe de Ventas"
         r_id_cliente: "Cod Cliente"
         cv_nombre_completo_cliente: "Razón Social"
-        cv_barrio: "Barrio"
+        cv_barrio: "Nombre Comercial"
         cv_direccion: "Dirección"
         cv_id_ciudad: "Cód. Población"
         Cod_CRM: "Cod Actual"
@@ -131,6 +131,10 @@ insumos:
         Nom_oficina: "Oficina de Ventas"
         Cod_Zona: "Cód. Vendedor"
         Zona: "Nombre Vendedor"
+        "barrio" : "Barrio"
+    
+    path_guardado : "Resultados/universo_indirecta_completo.xlsx"
+    path_nulos : "Resultados/df_indirecta_con_elementos_nulos.xlsx"
 
     base_inicio_mes_indir:
       nom_base: "Base Inicio Mes - Indirecta.xlsx"
@@ -157,6 +161,9 @@ insumos:
 
       par_cols_merge_drv_tipologia: 
         <<: *par_col_merge_tip
+    
+    cols_finales : *cols_finales
+
   drivers:
     path: "Insumos/Drivers/"
     nom_base: "Drivers Universos.xlsx"
@@ -165,7 +172,7 @@ insumos:
 
 dict_cols : {
     "cod_cliente": "Cod Cliente",
-    "nombre_razon": "Razon Social",
+    "nombre_razon": "Razón Social",
     "nombre_comercial": "Nombre Comercial",
     "cod_poblacion" : "Cód. Población",
     "municipio": "Municipio",

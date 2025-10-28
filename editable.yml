@@ -3,7 +3,7 @@
 insumos:
   directa:
     # Orden final de columnas para el proceso de la directa. 
-    cols_finales_directa:
+    cols_finales:
       - "Cod Cliente"
       - "Razón Social"
       - "Nombre Comercial"

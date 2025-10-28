@@ -9,6 +9,11 @@ import Utils.proyect_functions as proy_ft
 class ProcesoIndirecta:
     """Proceso para la parte Indirecta del proyecto."""
 
+    FUENTE = "Fuente"
+    VALOR_UNIVERSO = "universo"
+    VALOR_BASE_INICIO_MES = "base_inicio_mes"
+    LISTA_COORD_NULL = ["0, 0 ", ", ", "0.0, 0.0"]
+
     def __init__(
         self, cfg_indirecta: Dict, cfg_cols: Dict, dict_drivers: Dict[str, DataFrame]
     ):
@@ -62,13 +67,21 @@ class ProcesoIndirecta:
         # Tomar columnas referentes a cordenadas (Pregunta Agente - cliente)
         df_ini_mes_coord = tf.seleccionar_columnas_pd(
             df=df_ini_mes_ren,
-            cols_elegidas=[self.cfg_cols["cod_actual"], self.cfg_cols["coord_unif"]],
+            cols_elegidas=[
+                self.cfg_cols["cod_jefe_vtas"],
+                self.cfg_cols["cod_cliente"],
+                self.cfg_cols["coord_unif"],
+            ],
         )
         # Traer las coordenadas unificadas al universo.
-        df_unviverso_merge = tf.pd_left_merge_two_keys(
-            base_left=df_unviverso_ren,
-            base_right=df_ini_mes_coord.drop_duplicates(),
-            left_key=self.cfg_cols["cod_actual"],
+        df_unviverso_merge = merge(
+            left=df_unviverso_ren,
+            right=df_ini_mes_coord.drop_duplicates(),
+            on=[
+                self.cfg_cols["cod_jefe_vtas"],
+                self.cfg_cols["cod_cliente"],
+            ],
+            how="left",
         )
 
         # Tomar solo clientes que estan en base inicio mes y no en universo.
@@ -123,6 +136,14 @@ class ProcesoIndirecta:
             drv_tipologia=drv_tipologias,
             par_cols=par_cols,
         )
+        # Traer información de driver regional
+        drv_region = self.dict_drivers.get("Regionales")
+
+        df_ini_mes_merge_reg = tf.pd_left_merge_two_keys(
+            base_left=df_ini_mes_merge,
+            base_right=drv_region,
+            left_key=self.cfg_cols["cod_oficina"],
+        )
 
         # Traer información del driver municipios (Universo / base inicio mes)
         drv_municipios = self.dict_drivers.get("Municipios")
@@ -133,8 +154,8 @@ class ProcesoIndirecta:
         ].str.lower()
 
         # Tnasformación para relacionar municipio y departamento base y driver
-        df_ini_mes_merge = merge(
-            left=df_ini_mes_merge,
+        df_ini_mes_merge_reg = merge(
+            left=df_ini_mes_merge_reg,
             right=drv_municipios.drop_duplicates(
                 subset=[
                     self.cfg_cols["cod_poblacion"],
@@ -156,10 +177,79 @@ class ProcesoIndirecta:
         )
 
         df_unviverso_merge.loc[:, self.FUENTE] = self.VALOR_UNIVERSO
-        df_ini_mes_merge.loc[:, self.FUENTE] = self.VALOR_BASE_INICIO_MES
+        df_ini_mes_merge_reg.loc[:, self.FUENTE] = self.VALOR_BASE_INICIO_MES
 
         df_base_completa = concat(
-            objs=[df_unviverso_merge, df_ini_mes_merge], join="inner"
+            objs=[df_unviverso_merge, df_ini_mes_merge_reg], join="inner"
         )
+
+        # Crear columna cliente.
+        df_base_completa = tf.concatenar_columnas_pd(
+            df=df_base_completa,
+            cols_elegidas=[
+                self.cfg_cols["cod_jefe_vtas"],
+                self.cfg_cols["cod_cliente"],
+            ],
+            nueva_columna=self.cfg_cols["cliente"],
+        )
+
+        # Ajustar Nulos razón social.
+        df_base_completa["Razón Social"] = df_base_completa["Razón Social"].mask(
+            df_base_completa["Razón Social"].isna(),
+            df_base_completa["Nombre Comercial"],
+        )
+
+        cols_con_nulos = df_base_completa.columns[
+            df_base_completa.isna().any()
+        ].tolist()
+
+        df_base_completa[self.cfg_cols["coord_unif"]] = df_base_completa[
+            self.cfg_cols["coord_unif"]
+        ].replace(self.LISTA_COORD_NULL, self.cfg_cols["valor_guion"], regex=False)
+
+        #  Determinar registros con elementos nulos.
+        df_nulos = df_base_completa[df_base_completa.isnull().any(axis=1)]
+
+        df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
+            base=df_base_completa,
+            list_columns=cols_con_nulos,
+            value=self.cfg_cols["valor_nulo"],
+        )
+
+        df_base_completa.loc[:, self.cfg_cols["municipio"]] = df_base_completa[
+            self.cfg_cols["municipio"]
+        ].str.upper()
+
+        df_final_select = tf.seleccionar_columnas_pd(
+            df=df_base_completa, cols_elegidas=self.cfg["cols_finales"]
+        )
+
+        df_nulos_select = tf.seleccionar_columnas_pd(
+            df=df_nulos, cols_elegidas=self.cfg["cols_finales"]
+        )
+
+        # Ajustar Jefes de Venta (Agentes comerciales finales.)
+
+        # Traer información del driver agentes.
+        drv_ac = self.dict_drivers.get("Agentes Comerciales")
+
+        dict_jefe_nom_jefe = gf.crear_diccionario_desde_dataframe(
+            df=drv_ac,
+            col_clave=self.cfg_cols["cod_jefe_vtas"],
+            col_valor=self.cfg_cols["nom_jefe_vtas"],
+        )
+        df_final_select = tf.reemplazar_columna_en_funcion_de_otra(
+            df=df_final_select,
+            nom_columna_a_reemplazar=self.cfg_cols["nom_jefe_vtas"],
+            nom_columna_de_referencia=self.cfg_cols["cod_jefe_vtas"],
+            mapeo=dict_jefe_nom_jefe,
+        )
+
+        df_nulos_select.to_excel(
+            "Resultados/df_indirecta_con_elementos_nulos.xlsx", index=False
+        )
+        # Exportar resultados
+        gf.exportar_a_excel(ruta_archivo=self.cfg["path_nulos"], df=df_nulos_select)
+        gf.exportar_a_excel(ruta_archivo=self.cfg["path_guardado"], df=df_final_select)
 
         logger.info("=== Proceso Indirecta finalizado ===\n")

@@ -174,30 +174,24 @@ def reemplazar_columna_en_funcion_de_otra(
 ) -> pd.DataFrame:
     """
     Reemplaza los valores en una columna en función de los valores en otra columna en un DataFrame.
-
-    Args:
-        df (pandas.DataFrame): El DataFrame en el que se realizarán los reemplazos.
-        columna_a_reemplazar (str): El nombre de la columna que se reemplazará.
-        columna_de_referencia (str): El nombre de la columna que se utilizará como referencia para el reemplazo.
-        mapeo (dict): Un diccionario que mapea los valores de la columna de referencia a los nuevos valores.
-
-    Returns:
-        pandas.DataFrame: El DataFrame actualizado con los valores reemplazados en la columna indicada.
     """
     try:
         df_copy = df.copy()
 
-        logger.info(f"Inicio de remplazamiento de datos en {nom_columna_a_reemplazar}")
-        df[nom_columna_a_reemplazar] = where(
-            df[nom_columna_de_referencia].isin(mapeo.keys()),
-            df[nom_columna_de_referencia].map(mapeo),
-            df[nom_columna_a_reemplazar],
+        logger.info(f"Inicio de reemplazamiento de datos en {nom_columna_a_reemplazar}")
+
+        df_copy.loc[:, nom_columna_a_reemplazar] = where(
+            df_copy[nom_columna_de_referencia].isin(mapeo.keys()),
+            df_copy[nom_columna_de_referencia].map(mapeo),
+            df_copy[nom_columna_a_reemplazar],
         )
-        mensaje = f"Proceso de remplazamiento en {nom_columna_a_reemplazar} exitoso"
+
+        mensaje = f"Proceso de reemplazamiento en {nom_columna_a_reemplazar} exitoso"
+        logger.info(mensaje)
 
     except Exception as e:
         logger.critical(
-            f"Proceso de remplazamiento de datos en {nom_columna_a_reemplazar} fallido."
+            f"Proceso de reemplazamiento de datos en {nom_columna_a_reemplazar} fallido: {e}"
         )
         raise e
 
@@ -318,7 +312,7 @@ def remplazar_nulos_multiples_columnas_pd(
     try:
         base.loc[:, list_columns] = base[list_columns].fillna(value)
         base_modificada = base
-        logger.success("cambio tipo de dato satisfactorio: ")
+        logger.success("tratamienmto de nulos satisfacotiro: ")
 
     except Exception:
         logger.critical("cambio tipo de dato fallido.")

@@ -12,6 +12,7 @@ class ProcesoDirecta:
     FUENTE = "Fuente"
     VALOR_UNIVERSO = "universo"
     VALOR_BASE_INICIO_MES = "base_inicio_mes"
+    LISTA_COORD_NULL = ["0, 0", ", "]
 
     def __init__(
         self, cfg_directa: Dict, cfg_cols: Dict, dict_drivers: Dict[str, DataFrame]
@@ -217,7 +218,7 @@ class ProcesoDirecta:
 
         df_base_completa[self.cfg_cols["coord_unif"]] = df_base_completa[
             self.cfg_cols["coord_unif"]
-        ].replace(["0, 0", ", "], self.cfg_cols["valor_guion"], regex=False)
+        ].replace(self.LISTA_COORD_NULL, self.cfg_cols["valor_guion"], regex=False)
 
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_base_completa,

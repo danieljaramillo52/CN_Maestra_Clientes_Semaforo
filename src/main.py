@@ -95,7 +95,7 @@ if __name__ == "__main__":
     app = Aplicacion()
 
     # ejecutar solo Directa de forma parcial
-    app.ejecutar_parcial("directa")
+    # app.ejecutar_parcial("directa")
     app.ejecutar_parcial("indirecta")
 
     # ejecutar ambos procesos completos
