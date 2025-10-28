@@ -140,7 +140,7 @@ def lectura_insumos_excel(
         Tuple[pd.DataFrame, str]: DataFrame leído y mensaje de éxito.
     """
     try:
-        nrows = 20 if modo_pruebas else None
+        nrows = 1000 if modo_pruebas else None
         logger.info(f"Iniciando lectura {nom_insumo} Hoja: {nom_hoja}")
 
         base_leida = pd.read_excel(

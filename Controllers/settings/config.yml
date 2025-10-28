@@ -5,7 +5,6 @@ insumos:
     universo_directa:
       nom_base: "Universo de Clientes - Directa.xlsb"
       nom_hoja: "Maestra"
-      cols: &cols_directa
       renombrar_cols: {
           "Cód. Cliente": "Cod Cliente",
           "Razon_Social": "Razón Social",
@@ -35,7 +34,6 @@ insumos:
     base_inicio_mes_dir:
       nom_base: "Base Inicio Mes - Directa.xlsx"
       nom_hoja: "Clientes_Activos_AGCO"
-      cols: &cols_bas_in_mes_dir
       renombrar_cols: {
         "Nºcliente": "Cod Cliente",
         "Nombre 1": "Razón Social",
@@ -113,17 +111,50 @@ insumos:
   indirecta:
     path: "Insumos/Indirecta/"
     universo_indirecta:
-      nom_base: "Universo de Clientes - Indirecta.xlsx"
-      nom_hoja: "Consolidado"
-      cols: &cols_indirecta
+      nom_base: "Universo de Clientes - Indirecta.xlsb"
+      nom_hoja: "BD"
       renombrar_cols: 
-        "a" : "a"
+        r_id_agente_comercial: "Cód. Jefe de Ventas"
+        cv_nombre_agente_comercial: "Jefe de Ventas"
+        r_id_cliente: "Cod Cliente"
+        cv_nombre_completo_cliente: "Razón Social"
+        cv_barrio: "Barrio"
+        cv_direccion: "Dirección"
+        cv_id_ciudad: "Cód. Población"
+        Cod_CRM: "Cod Actual"
+        Canal Trans: "Canal Transformado"
+        Subcanal trans: "Subcanal Transformado"
+        Segmento Trans: "Segmento Transformado"
+        Region: "Región"
+        Regional: "Regional"
+        Cod_oficina: "Cód. Oficina de Ventas"
+        Nom_oficina: "Oficina de Ventas"
+        Cod_Zona: "Cód. Vendedor"
+        Zona: "Nombre Vendedor"
+
     base_inicio_mes_indir:
       nom_base: "Base Inicio Mes - Indirecta.xlsx"
-      nom_hoja: "Consolidado"
-      cols: &cols_bas_in_mes_indir
+      nom_hoja: "Comercial Nutresa"
       renombrar_cols: 
-        "a" : "a"
+        COD_AC: "Cód. Jefe de Ventas"
+        AGENTE_COMERCIAL: "Jefe de Ventas"
+        CODIGO_ECOM: "Cod Cliente"
+        RAZON_SOCIAL: "Razón Social"
+        DIRECCION: "Dirección"
+        NOMBRE_NEG: "Nombre Comercial"
+        COD_DPTO: "Cód. Departamento"
+        COD_CIUDAD: "Cód. Población"
+        BARRIO: "Barrio"
+        CANAL_CLIENTE: "Cód. Canal Transformado"
+        SUBCANAL_CLIENTE: "Cód. Sub Canal Transformado"
+        COORDENADA_X: "Coordenada X"
+        COORDENADA_Y: "Coordenada Y"
+        COD_CRM: "Cod Actual"
+        TIPOLOGIA: "Cód. Segmento Transformado"
+        COD_OF_VENTAS: "Cód. Oficina de Ventas"
+      
+      cols_constantes_guion : ["Función Inter.", "Cód. Vendedor", Nombre Vendedor]
+
       par_cols_merge_drv_tipologia: 
         <<: *par_col_merge_tip
   drivers:

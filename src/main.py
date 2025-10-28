@@ -68,8 +68,10 @@ class Aplicacion:
     def indirecta(self):
         """Devuelve una instancia de ProcesoIndirecta solo al primer acceso."""
         if self._indirecta is None:
-            cfg_indirecta = self.config_global.get("indirecta", {})
-            self._indirecta = self.indirecta_controller.ProcesoIndirecta(cfg_indirecta)
+            cfg_indirecta = self.config_global("insumos", "indirecta")
+            self._indirecta = indirecta_controller.ProcesoIndirecta(
+                cfg_indirecta, cfg_cols=self.cfg_cols, dict_drivers=self.drivers
+            )
         return self._indirecta
 
     @gf.registro_tiempo
@@ -94,6 +96,7 @@ if __name__ == "__main__":
 
     # ejecutar solo Directa de forma parcial
     app.ejecutar_parcial("directa")
+    app.ejecutar_parcial("indirecta")
 
     # ejecutar ambos procesos completos
     # app.ejecutar_todo()

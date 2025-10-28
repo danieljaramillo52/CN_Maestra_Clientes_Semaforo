@@ -2,7 +2,7 @@
 import pandas as pd
 from numpy import where
 from loguru import logger
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple, Literal
 from Utils.general_functions import registro_tiempo
 
 
@@ -114,48 +114,49 @@ def pd_left_merge_two_keys(
 
 
 @registro_tiempo
-def eliminar_dos_primeros_caracteres_pd(
-    df: pd.DataFrame, col: str, n: int
-) -> pd.DataFrame:
+def modificar_caracteres_columna_pd(
+    df: pd.DataFrame,
+    col: str,
+    n: int,
+    accion: Literal["eliminar", "conservar"] = "eliminar",
+) -> Tuple[pd.DataFrame, str]:
     """
-    Elimina los dos primeros caracteres de una columna específica en un DataFrame
-    y devuelve una copia modificada del mismo.
+    Elimina o conserva los primeros `n` caracteres de una columna específica en un DataFrame.
 
-    Descripción
-    -----------
-    Aplica una transformación sobre la columna indicada, removiendo los dos primeros
-    caracteres de cada valor. Trabaja sobre una copia del DataFrame original.
+    Args:
+        df (pd.DataFrame): DataFrame de entrada que contiene la columna a transformar.
+        col (str): Nombre de la columna a modificar.
+        n (int): Número de caracteres a eliminar o conservar.
+        accion (Literal["eliminar", "conservar"], opcional):
+            Acción a realizar:
+            - "eliminar": elimina los primeros `n` caracteres.
+            - "conservar": mantiene solo los primeros `n` caracteres.
+            Por defecto "eliminar".
 
-    Args
-    ----
-    df : pd.DataFrame
-        DataFrame de entrada que contiene la columna a transformar.
-    col : str
-        Nombre de la columna sobre la cual se eliminarán los dos primeros caracteres.
-    n: int
-        Número de caracteres a eliminar.
-
-    Returns
-    -------
-    pd.DataFrame
-        Copia del DataFrame con la columna transformada. Si ocurre un error,
-        se devuelve el DataFrame original.
+    Returns:
+        Tuple[pd.DataFrame, str]:
+            DataFrame modificado y mensaje descriptivo.
     """
     try:
-        # Crear una copia para no modificar el DataFrame original
         df_mod = df.copy()
 
-        # Validar existencia de la columna
         if col not in df_mod.columns:
-            raise KeyError(f"La columna '{col}' no existe en el DataFrame")
+            raise KeyError(f"La columna '{col}' no existe en el DataFrame.")
 
-        # Eliminar los dos primeros caracteres
-        df_mod[col] = df_mod[col].astype(str).str[n:]
-
-        # Log de éxito en coherencia con el estándar del proyecto
-        mensaje = f"Eliminados los '{n}' primeros caracteres de '{col}'"
+        if accion == "eliminar":
+            df_mod[col] = df_mod[col].str[n:]
+            mensaje = f" Eliminados los primeros {n} caracteres de '{col}'."
+        elif accion == "conservar":
+            df_mod[col] = df_mod[col].str[:n]
+            mensaje = f" Conservados solo los primeros {n} caracteres de '{col}'."
+        else:
+            raise ValueError("El parámetro 'accion' debe ser 'eliminar' o 'conservar'.")
 
         return df_mod, mensaje
+
+    except Exception as e:
+        mensaje = f" Error al modificar caracteres en '{col}': {e}"
+        return df, mensaje
 
     except Exception as e:
         logger.critical(
@@ -184,6 +185,8 @@ def reemplazar_columna_en_funcion_de_otra(
         pandas.DataFrame: El DataFrame actualizado con los valores reemplazados en la columna indicada.
     """
     try:
+        df_copy = df.copy()
+
         logger.info(f"Inicio de remplazamiento de datos en {nom_columna_a_reemplazar}")
         df[nom_columna_a_reemplazar] = where(
             df[nom_columna_de_referencia].isin(mapeo.keys()),
@@ -198,7 +201,7 @@ def reemplazar_columna_en_funcion_de_otra(
         )
         raise e
 
-    return df, mensaje
+    return df_copy, mensaje
 
 
 def concatenar_columnas_pd(

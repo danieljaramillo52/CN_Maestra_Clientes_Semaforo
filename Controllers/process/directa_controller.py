@@ -1,4 +1,5 @@
 from loguru import logger
+from typing import Dict
 from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
@@ -13,7 +14,7 @@ class ProcesoDirecta:
     VALOR_BASE_INICIO_MES = "base_inicio_mes"
 
     def __init__(
-        self, cfg_directa: dict, cfg_cols: dict, dict_drivers: dict[str, DataFrame]
+        self, cfg_directa: Dict, cfg_cols: Dict, dict_drivers: Dict[str, DataFrame]
     ):
         self.cfg = cfg_directa
         self.cfg_cols = cfg_cols
@@ -64,8 +65,10 @@ class ProcesoDirecta:
             orden_prioridad=self.cfg["universo_directa"]["orden_prioridad_jv_vend"],
         )
 
-        df_ini_mes_fil = tf.eliminar_dos_primeros_caracteres_pd(
-            df=df_ini_mes_fil, col=self.cfg_cols["cod_cliente"], n=2
+        df_ini_mes_fil = tf.modificar_caracteres_columna_pd(
+            df=df_ini_mes_fil,
+            col=self.cfg_cols["cod_cliente"],
+            n=2,
         )
 
         df_ini_mes_fil = tf.concatenar_columnas_pd(
@@ -123,27 +126,14 @@ class ProcesoDirecta:
         #  Diccionario con las configuraciones de columnas
         par_cols = self.cfg["base_inicio_mes_dir"]["par_cols_merge_drv_tipologia"]
 
-        #  DataFrame base
-        df_result = df_ini_mes_fil.copy()
+        df_ini_mes_ren_copy = df_ini_mes_fil.copy()
 
-        # Iterar sobre cada grupo (canal, subcanal, segmento)
-        for _, cols in par_cols.items():
-            # Primer elemento es la llave código (para el merge)
-            col_codigo = cols[0]
-
-            # Extraer la parte relevante del driver y limpiar nulos
-            df_drv = tf.seleccionar_columnas_pd(
-                drv_tipologias, cols_elegidas=cols
-            ).dropna(subset=[col_codigo])
-
-            # Merge left sin duplicar llaves
-            df_result = tf.pd_left_merge_two_keys(
-                base_left=df_result,
-                base_right=df_drv,
-                left_key=col_codigo,
-            )
-
-        df_ini_mes_merge = df_result
+        # Lógica de negocio merge sucesivos con el drv_tipologias usando la configuración establecida.
+        df_ini_mes_merge = proy_ft.merge_con_tipologia(
+            df_base=df_ini_mes_ren_copy,
+            drv_tipologia=drv_tipologias,
+            par_cols=par_cols,
+        )
 
         # Traer información de driver regional
         drv_region = self.dict_drivers.get("Regionales")
