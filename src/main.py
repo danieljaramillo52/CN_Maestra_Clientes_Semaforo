@@ -41,7 +41,6 @@ class Aplicacion:
         self._drivers = None
 
     # Inicialización de procesos
-
     @property
     def drivers(self):
         """Develve el objeto drivers necesario para los procesos directa e indirecta

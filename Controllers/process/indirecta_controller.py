@@ -103,8 +103,10 @@ class ProcesoIndirecta:
         )
 
         # Aignar columas constantes indirecta (base inicio mes y universo)
-        for cada_col in self.cfg["base_inicio_mes_indir"]["cols_constantes_guion"]:
-            df_ini_mes_ren[cada_col] = self.cfg_cols["valor_guion"]
+        for cada_col, cada_valor in self.cfg["base_inicio_mes_indir"][
+            "dict_cols_constantes"
+        ].items():
+            df_ini_mes_ren[cada_col] = cada_valor
 
         df_unviverso_merge[self.cfg_cols["funcion_inter"]] = self.cfg_cols[
             "valor_guion"
@@ -179,6 +181,40 @@ class ProcesoIndirecta:
         df_unviverso_merge.loc[:, self.FUENTE] = self.VALOR_UNIVERSO
         df_ini_mes_merge_reg.loc[:, self.FUENTE] = self.VALOR_BASE_INICIO_MES
 
+        # Ajustar transofrmados según resultados existentes.
+        dict_seg_can = gf.crear_diccionario_desde_dataframe(
+            df=df_unviverso_merge,
+            col_clave=self.cfg_cols["segm_trans"],
+            col_valor=self.cfg_cols["canal_trans"],
+        )
+        dict_seg_subc = gf.crear_diccionario_desde_dataframe(
+            df=df_unviverso_merge,
+            col_clave=self.cfg_cols["segm_trans"],
+            col_valor=self.cfg_cols["subcn_trans"],
+        )
+
+        # Reemplazar tipologias en base inicio mes
+        df_ini_mes_merge_reg = tf.reemplazar_columna_en_funcion_de_otra(
+            df=df_ini_mes_merge_reg,
+            nom_columna_a_reemplazar=self.cfg_cols["canal_trans"],
+            nom_columna_de_referencia=self.cfg_cols["segm_trans"],
+            mapeo=dict_seg_can,
+        )
+        df_ini_mes_merge_reg = tf.reemplazar_columna_en_funcion_de_otra(
+            df=df_ini_mes_merge_reg,
+            nom_columna_a_reemplazar=self.cfg_cols["subcn_trans"],
+            nom_columna_de_referencia=self.cfg_cols["segm_trans"],
+            mapeo=dict_seg_subc,
+        )
+
+        # Tratar canales / subcanal / segmentos restantes
+        df_ini_mes_merge_reg = tf.reemplazar_nulos_con_dict(
+            df=df_ini_mes_merge_reg,
+            valores_por_defecto=self.cfg["base_inicio_mes_indir"][
+                "dict_cn_sub_seg_null"
+            ],
+        )
+
         df_base_completa = concat(
             objs=[df_unviverso_merge, df_ini_mes_merge_reg], join="inner"
         )
@@ -194,9 +230,11 @@ class ProcesoIndirecta:
         )
 
         # Ajustar Nulos razón social.
-        df_base_completa["Razón Social"] = df_base_completa["Razón Social"].mask(
-            df_base_completa["Razón Social"].isna(),
-            df_base_completa["Nombre Comercial"],
+        df_base_completa[self.cfg_cols["nombre_comercial"]] = df_base_completa[
+            self.cfg_cols["nombre_comercial"]
+        ].mask(
+            df_base_completa[self.cfg_cols["nombre_comercial"]].isna(),
+            df_base_completa[self.cfg_cols["nombre_razon"]],
         )
 
         cols_con_nulos = df_base_completa.columns[
@@ -207,9 +245,10 @@ class ProcesoIndirecta:
             self.cfg_cols["coord_unif"]
         ].replace(self.LISTA_COORD_NULL, self.cfg_cols["valor_guion"], regex=False)
 
-        #  Determinar registros con elementos nulos.
-        df_nulos = df_base_completa[df_base_completa.isnull().any(axis=1)]
+        #  Determinar registros con elementos nulos (Municipio)
+        df_nulos_mun = df_base_completa[df_base_completa["Municipio"].isnull()]
 
+        # Reemplazar nulos por defecto.
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
             base=df_base_completa,
             list_columns=cols_con_nulos,
@@ -219,14 +258,6 @@ class ProcesoIndirecta:
         df_base_completa.loc[:, self.cfg_cols["municipio"]] = df_base_completa[
             self.cfg_cols["municipio"]
         ].str.upper()
-
-        df_final_select = tf.seleccionar_columnas_pd(
-            df=df_base_completa, cols_elegidas=self.cfg["cols_finales"]
-        )
-
-        df_nulos_select = tf.seleccionar_columnas_pd(
-            df=df_nulos, cols_elegidas=self.cfg["cols_finales"]
-        )
 
         # Ajustar Jefes de Venta (Agentes comerciales finales.)
 
@@ -238,16 +269,22 @@ class ProcesoIndirecta:
             col_clave=self.cfg_cols["cod_jefe_vtas"],
             col_valor=self.cfg_cols["nom_jefe_vtas"],
         )
-        df_final_select = tf.reemplazar_columna_en_funcion_de_otra(
-            df=df_final_select,
+        df_base_completa = tf.reemplazar_columna_en_funcion_de_otra(
+            df=df_base_completa,
             nom_columna_a_reemplazar=self.cfg_cols["nom_jefe_vtas"],
             nom_columna_de_referencia=self.cfg_cols["cod_jefe_vtas"],
             mapeo=dict_jefe_nom_jefe,
         )
 
-        df_nulos_select.to_excel(
-            "Resultados/df_indirecta_con_elementos_nulos.xlsx", index=False
+        # Seleccionar cols finales
+        df_final_select = tf.seleccionar_columnas_pd(
+            df=df_base_completa, cols_elegidas=self.cfg["cols_finales"]
         )
+        df_nulos_select = tf.seleccionar_columnas_pd(
+            df=df_nulos_mun,
+            cols_elegidas=self.cfg["cols_finales"] + [self.cfg_cols["cod_poblacion"]],
+        )
+
         # Exportar resultados
         gf.exportar_a_excel(ruta_archivo=self.cfg["path_nulos"], df=df_nulos_select)
         gf.exportar_a_excel(ruta_archivo=self.cfg["path_guardado"], df=df_final_select)

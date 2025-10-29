@@ -232,7 +232,7 @@ class ProcesoDirecta:
         ].str.upper()
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
-            df=df_base_completa, cols_elegidas=self.cfg["cols_finales_directa"]
+            df=df_base_completa, cols_elegidas=self.cfg["cols_finales"]
         )
 
         gf.exportar_a_excel(

@@ -157,7 +157,15 @@ insumos:
         TIPOLOGIA: "Cód. Segmento Transformado"
         COD_OF_VENTAS: "Cód. Oficina de Ventas"
       
-      cols_constantes_guion : ["Función Inter.", "Cód. Vendedor", Nombre Vendedor]
+      dict_cn_sub_seg_null:
+        "Canal Transformado" : "Otros Canales"
+        "Subcanal Transformado" : "Otros Sub Canales"
+        "Segmento Transformado" : "Otros Segmentos"
+
+      dict_cols_constantes : 
+        "Función Inter." : "-"
+        "Cód. Vendedor": "Sin Zona"
+        "Nombre Vendedor" : "Sin Zona"
 
       par_cols_merge_drv_tipologia: 
         <<: *par_col_merge_tip
@@ -183,6 +191,9 @@ dict_cols : {
     "canal": "Cód. Canal Transformado",
     "subcanal": "Cód. Sub Canal Transformado",
     "segmento": "Cód. Segmento Transformado",
+    "canal_trans": "Canal Transformado",
+    "subcn_trans" : "Subcanal Transformado",
+    "segm_trans" : "Segmento Transformado",
     "funcion_inter": "Función Inter.",
     "oficina_ventas": "Oficina de Ventas",
     "regional": "Regional",

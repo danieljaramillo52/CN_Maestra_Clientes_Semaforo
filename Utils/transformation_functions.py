@@ -321,6 +321,70 @@ def remplazar_nulos_multiples_columnas_pd(
     return base_modificada
 
 
+@registro_tiempo
+def reemplazar_nulos_con_dict(
+    df: pd.DataFrame, valores_por_defecto: Dict[str, Any]
+) -> pd.DataFrame:
+    """
+    Reemplaza los valores nulos en un DataFrame según un diccionario de valores por columna.
+
+    Descripción
+    -----------
+    Esta función itera sobre las claves del diccionario `valores_por_defecto`,
+    reemplazando los valores nulos (NaN) en cada columna indicada por el valor
+    correspondiente definido en el diccionario.
+    Solo se procesan las columnas existentes en el DataFrame.
+
+    Args
+    ----
+    df : pd.DataFrame
+        DataFrame de entrada sobre el que se aplicarán los reemplazos.
+    valores_por_defecto : Dict[str, Any]
+        Diccionario con pares {columna: valor_por_defecto} que define el valor
+        con el que se reemplazarán los nulos en cada columna.
+
+    Returns
+    -------
+    pd.DataFrame
+        Copia del DataFrame con los valores nulos reemplazados según el diccionario.
+
+    Raises
+    ------
+    TypeError
+        Si `valores_por_defecto` no es un diccionario.
+    Exception
+        Si ocurre cualquier otro error durante el proceso.
+    """
+    try:
+        # Validar tipo del diccionario
+        if not isinstance(valores_por_defecto, dict):
+            raise TypeError(
+                "El parámetro 'valores_por_defecto' debe ser un diccionario."
+            )
+
+        # Crear copia del DataFrame
+        df_copy = df.copy()
+
+        # Reemplazar valores nulos según el diccionario
+        df_copy = df_copy.fillna(value=valores_por_defecto)
+
+        logger.info(
+            f"Reemplazo de nulos completado para columnas: {list(valores_por_defecto.keys())}"
+        )
+        mensaje = (
+            f"Reemplazo de nulos exitoso en columnas {list(valores_por_defecto.keys())}"
+        )
+
+        return df_copy, mensaje
+
+    except Exception as e:
+        mensaje_error = (
+            f"❌ Error al reemplazar nulos: {e}. Se devuelve el DataFrame original."
+        )
+        logger.error(mensaje_error)
+        return df, mensaje_error
+
+
 def conservar_n_caracteres(
     df: pd.DataFrame, columnas: str | List[str], n_caracteres: int
 ) -> pd.DataFrame:

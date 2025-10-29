@@ -106,7 +106,9 @@ def exportar_a_excel(
         # Crear carpeta si no existe
         ruta.parent.mkdir(parents=True, exist_ok=True)
 
-        # Exportar el DataFrame
+        # Exportar el DataFrame.
+        logger.info(f"Inicio exportacion {ruta.name}")
+
         df.to_excel(ruta, sheet_name=nom_hoja, index=index)
 
         return f"✅ Exportación completada: '{ruta.name}' con hoja '{nom_hoja}' en '{ruta.parent}'"
