@@ -134,7 +134,7 @@ insumos:
         "barrio" : "Barrio"
     
     path_guardado : "Resultados/universo_indirecta_completo.xlsx"
-    path_nulos : "Resultados/df_indirecta_con_elementos_nulos.xlsx"
+    path_nulos : "Resultados/df_municipios_nulos.xlsx"
 
     base_inicio_mes_indir:
       nom_base: "Base Inicio Mes - Indirecta.xlsx"
