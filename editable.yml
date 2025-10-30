@@ -1,8 +1,7 @@
 # Configuración editable del proyecto. (Manipulación de parámetros proyecto.)
 
 insumos:
-  directa:
-    # Orden final de columnas para el proceso de la directa. 
+    # Orden final de columnas para los universos
     cols_finales:
       - "Cod Cliente"
       - "Razón Social"
