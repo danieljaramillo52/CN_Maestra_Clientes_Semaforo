@@ -6,9 +6,10 @@ from typing import Dict, List, Tuple, Optional
 import pandas as pd
 import yaml
 import time
+import sys
 
 
-def procesar_configuracion(nom_archivo_configuracion: str) -> dict:
+def procesar_configuracion(nom_archivo_configuracion: str) -> Dict:
     """
     Lee un archivo YAML de configuración y devuelve su contenido como diccionario.
 
@@ -182,7 +183,7 @@ def lectura_simple_excel(
     """
 
     try:
-        logger.info(f"Inicio lectura simple de {nom_insumo}")
+        logger.info(f"Inicio lectura simple de '{nom_insumo}' hoja: '{nom_hoja}' ")
         base_leida = pd.read_excel(
             dir_insumo + nom_insumo,
             sheet_name=nom_hoja,
@@ -190,9 +191,16 @@ def lectura_simple_excel(
         )
         mensaje = f"Lectura simple de {nom_insumo} realizada con éxito"
         return base_leida, mensaje
+    except PermissionError as pe:
+        logger.opt(exception=True).critical(
+            f"Permiso al archivo denegado verificar que el insumo esté cerrado: {pe}"
+        )
+        sys.exit(1)
     except Exception as e:
-        logger.error(f"Proceso de lectura fallido: {e}")
-        raise Exception(f"Error al leer el archivo: {e}")
+        logger.opt(exception=True).critical(
+            f"Permiso al archivo denegado verificar que el insumo esté cerrado: {e}"
+        )
+        sys.exit(1)
 
 
 def crear_diccionario_desde_dataframe(
@@ -223,3 +231,44 @@ def crear_diccionario_desde_dataframe(
         # Registrar un mensaje crítico si hay un error
         logger.critical(f"Error: {ve}")
         raise ve
+
+
+def menu(app):
+    """
+    Menú mínimo por consola para ejecutar procesos:
+      1) Directa
+      2) Indirecta
+      3) Todo
+      0) Salir
+    """
+    acciones = {
+        "1": lambda: app.ejecutar_parcial("directa"),
+        "2": lambda: app.ejecutar_parcial("indirecta"),
+        "3": app.ejecutar_todo,
+    }
+
+    while True:
+        print("\n=== MENÚ ===")
+        print("1) Ejecutar DIRECTA")
+        print("2) Ejecutar INDIRECTA")
+        print("3) Ejecutar TODO")
+        print("0) Salir")
+        opcion = input("Selecciona una opción: ").strip()
+
+        if opcion == "0":
+            print("Saliendo...")
+            break
+
+        accion = acciones.get(opcion)
+        if not accion:
+            print("Opción inválida. Intenta de nuevo.")
+            continue
+
+        try:
+            accion()
+            print("✔ Proceso finalizado.")
+        except KeyboardInterrupt:
+            print("\nInterrumpido por el usuario.")
+        except Exception as e:
+            # Muestra error breve; puedes loguear detalles con logger si quieres
+            print(f"✖ Error al ejecutar la opción {opcion}: {e}")

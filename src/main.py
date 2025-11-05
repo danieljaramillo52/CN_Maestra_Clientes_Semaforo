@@ -2,6 +2,7 @@
 import pandas as pd
 import config_path_routes  # Configuración de paths del proyecto. NO eliminar.
 import Utils.general_functions as gf
+import Utils.data_quality_functions as dqf
 import Utils.transformation_functions as tf
 import Utils.proyect_functions as proy_ft
 from Controllers.config_loader import ConfigLoader
@@ -19,7 +20,7 @@ class Aplicacion:
 
     Attributes:
         config_loader (ConfigLoader): Manejador de la configuración principal del proyecto.
-        config_global (Callable): Función auxiliar para acceder a secciones del archivo de configuración.
+        config_view (Callable): Función auxiliar para acceder a secciones del archivo de configuración.
         cfg_cols (dict): Diccionario de columnas globales definido en la configuración (`dict_cols`).
         _directa (ProcesoDirecta | None): Instancia del proceso Directa, creada al primer acceso.
         _indirecta (ProcesoIndirecta | None): Instancia del proceso Indirecta, creada al primer acceso.
@@ -32,8 +33,8 @@ class Aplicacion:
 
     def __init__(self):
         self.config_loader = ConfigLoader()
-        self.config_global = self.config_loader.get_config
-        self.cfg_cols = self.config_global("dict_cols")
+        self.config_view = self.config_loader.view
+        self.cfg_cols = self.config_view("dict_cols")
 
         # Variables privadas para lazy initialization
         self._directa = None
@@ -47,7 +48,23 @@ class Aplicacion:
 
         Se carga una sola vez al primer acceso (lazy loading)."""
         if self._drivers is None:
-            cfg_drivers = self.config_global("insumos", "drivers")
+            cfg_drivers = self.config_view("insumos", "drivers")
+
+            # Validacion de columnas para todas las hojas del driver.
+            for cada_hoja in cfg_drivers["nom_hojas"]:
+
+                driver_df = gf.lectura_simple_excel(
+                    dir_insumo=cfg_drivers["path"],
+                    nom_insumo=cfg_drivers["nom_base"],
+                    nom_hoja=cada_hoja,
+                )
+                dqf.verificar_columnas(
+                    df=driver_df,
+                    columnas_esperadas=cfg_drivers["cols"][cada_hoja],
+                    nombre_arc=cfg_drivers["nom_base"],
+                    nom_hoja=cada_hoja,
+                )
+
             self._drivers = gf.lectura_simple_excel(
                 dir_insumo=cfg_drivers["path"], nom_insumo=cfg_drivers["nom_base"]
             )
@@ -57,7 +74,7 @@ class Aplicacion:
     def directa(self):
         """Devuelve una instancia de ProcesoDirecta solo al primer acceso."""
         if self._directa is None:
-            cfg_directa = self.config_global("insumos", "directa")
+            cfg_directa = self.config_view("insumos", "directa")
             self._directa = directa_controller.ProcesoDirecta(
                 cfg_directa, cfg_cols=self.cfg_cols, dict_drivers=self.drivers
             )
@@ -67,7 +84,7 @@ class Aplicacion:
     def indirecta(self):
         """Devuelve una instancia de ProcesoIndirecta solo al primer acceso."""
         if self._indirecta is None:
-            cfg_indirecta = self.config_global("insumos", "indirecta")
+            cfg_indirecta = self.config_view("insumos", "indirecta")
             self._indirecta = indirecta_controller.ProcesoIndirecta(
                 cfg_indirecta, cfg_cols=self.cfg_cols, dict_drivers=self.drivers
             )
@@ -93,9 +110,25 @@ class Aplicacion:
 if __name__ == "__main__":
     app = Aplicacion()
 
-    # ejecutar solo Directa de forma parcial
-    # app.ejecutar_parcial("directa")
-    # app.ejecutar_parcial("indirecta")
+    cfg_insumos = app.config_view("insumos")
 
-    # ejecutar ambos procesos completos
-    app.ejecutar_todo()
+    path_insumos_dir = dqf.ensure_dir(base_dir=cfg_insumos("directa", "path"))
+    path_insumos_indir = dqf.ensure_dir(base_dir=cfg_insumos("indirecta", "path"))
+    path_insumos_drvs = dqf.ensure_dir(base_dir=cfg_insumos("drivers", "path"))
+
+    # Validación de insumos.
+    path_vtas = dqf.resolve_existing_file(
+        base_dir=path_insumos_dir,
+        filename=cfg_insumos.require("directa", "universo_directa", "nom_base"),
+    )
+
+    path_vtas = dqf.resolve_existing_file(
+        base_dir=path_insumos_indir,
+        filename=cfg_insumos.require("indirecta", "universo_indirecta", "nom_base"),
+    )
+
+    path_vtas = dqf.resolve_existing_file(
+        base_dir=path_insumos_drvs,
+        filename=cfg_insumos.require("drivers", "nom_base"),
+    )
+    gf.menu(app)

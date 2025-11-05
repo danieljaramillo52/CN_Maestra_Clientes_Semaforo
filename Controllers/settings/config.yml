@@ -175,8 +175,29 @@ insumos:
   drivers:
     path: "Insumos/Drivers/"
     nom_base: "Drivers Universos.xlsx"
-    cols: &cols_drivers
-
+    nom_hojas: ["Regionales","Tipologías","Municipios","Agentes Comerciales"]
+    cols:
+      "Regionales":
+        - "Cód. Oficina de Ventas"
+        - "Oficina de Ventas"
+        - "Regional"
+        - "Región"
+      "Tipologías":
+        - "Cód. Canal Transformado"
+        - "Canal Transformado"
+        - "Cód. Sub Canal Transformado"
+        - "Subcanal Transformado"
+        - "Cód. Segmento Transformado"
+        - "Segmento Transformado"
+      "Municipios":
+        - "Cód. Población"
+        - "Municipio"
+        - "Cód. Departamento"
+        - "Departamento"
+        - "Tipo Población"
+      "Agentes Comerciales":
+        - "Cód. Jefe de Ventas"
+        - "Jefe de Ventas"
 
 dict_cols : {
     "cod_cliente": "Cod Cliente",

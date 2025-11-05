@@ -1,5 +1,123 @@
 from Utils.general_functions import procesar_configuracion
 from loguru import logger
+from typing import Any, Tuple
+
+
+class ConfigView:
+    """
+    Vista segura (y perezosa) sobre un **sub-árbol** de la configuración.
+
+    Esta clase no materializa el dict crudo: cada acceso delega en
+    `ConfigLoader.get_config(...)` anteponiendo el **prefijo** con el que
+    fue creada la vista. Así mantienes validación, trazas/logs y un
+    punto único de acceso, pero escribiendo rutas **cortas**.
+
+    Ejemplo:
+        cfg_dir = app.config_view("insumos", "directa")
+        nom_base = cfg_dir("universo_directa", "nom_base", por_defecto="universo.xlsx")
+        hoja     = cfg_dir("universo_directa", "hoja", por_defecto="Hoja1")
+        # Estricto (falla rápido si falta):
+        nom_base_req = cfg_dir.require("universo_directa", "nom_base")
+    """
+
+    def __init__(self, loader: "ConfigLoader", prefix: Tuple[str, ...]):
+        """
+        Crea una vista anclada a un prefijo de claves.
+
+        Args:
+            loader ("ConfigLoader"): Instancia que expone `get_config`.
+            prefix (Tuple[str, ...]): Ruta (prefijo) del sub-árbol, p.ej.
+                `("insumos", "directa")`.
+
+        """
+        self._loader = loader
+        self._prefix = prefix
+
+    def get(self, *claves: str, por_defecto: Any = None) -> Any:
+        """
+        Acceso **tolerante** a una clave anidada partiendo del prefijo de la vista.
+
+        Si alguna clave no existe, devuelve `por_defecto` (no lanza excepción).
+
+        Args:
+            *claves: Secuencia de claves a resolver desde el prefijo actual.
+            por_defecto: Valor a retornar si la ruta no existe (por defecto: None).
+
+        Returns:
+            Any: Valor de configuración encontrado o `por_defecto`.
+
+        Ejemplo:
+            cfg_dir.get("universo_directa", "nom_base", por_defecto="universo.xlsx")
+        """
+        return self._loader.get_config(*self._prefix, *claves, por_defecto=por_defecto)
+
+    # Alias para usar la vista como si fuera una función:
+    #   cfg_dir("a","b", por_defecto="x")
+    __call__ = get
+
+    def require(self, *claves: str) -> Any:
+        """
+        Acceso **estricto**: exige que la clave exista.
+
+        Si la ruta no existe, lanza `KeyError` con la ruta completa desde el
+        nivel global. Útil para validar configuraciones obligatorias (fail fast).
+
+        Args:
+            *claves: Secuencia de claves a resolver desde el prefijo actual.
+
+        Returns:
+            Any: Valor de configuración encontrado.
+
+        Raises:
+            KeyError: Si la ruta no existe.
+
+        Ejemplo:
+            nom_base = cfg_dir.require("universo_directa", "nom_base")
+        """
+        valor = self.get(*claves, por_defecto=...)
+        if valor is ...:
+            ruta = " > ".join((*self._prefix, *claves))
+            raise KeyError(f"Clave de configuración requerida no encontrada: {ruta}")
+        return valor
+
+    def __getitem__(self, clave: str) -> Any:
+        """
+        Acceso **estricto** estilo mapeo/dict para la clave **inmediata**.
+
+        Equivale a `require(clave)` pero solo para un nivel (no acepta
+        múltiples claves). Conveniente para `cfg_dir["universo_directa"]`.
+
+        Args:
+            clave (str): Clave inmediata dentro del sub-árbol.
+
+        Returns:
+            Any: Valor asociado a `clave`.
+
+        Raises:
+            KeyError: Si la clave no existe.
+
+        Ejemplo:
+            universo = cfg_dir["universo_directa"]
+        """
+        valor = self.get(clave, por_defecto=...)
+        if valor is ...:
+            ruta = " > ".join((*self._prefix, clave))
+            raise KeyError(f"Clave de configuración no encontrada: {ruta}")
+        return valor
+
+    def as_dict(self) -> dict:
+        """
+        Devuelve una **copia materializada** del dict del sub-árbol.
+
+        Útil cuando necesitas pasar el sub-árbol completo a otra función o
+        validarlo con un esquema (p. ej., Pydantic). Los accesos posteriores
+        que quieras “seguros” deberían seguir haciéndose mediante la vista.
+
+        Returns:
+            dict: Copia del sub-árbol o `{}` si el sub-árbol no existe.
+        """
+        d = self.get(por_defecto={})
+        return {} if d is ... else d
 
 
 class ConfigLoader:
@@ -83,3 +201,7 @@ class ConfigLoader:
                 )
                 return por_defecto
         return actual
+
+    def view(self, *claves: str) -> ConfigView:
+        """Devuelve una vista segura anclada en el prefijo dado."""
+        return ConfigView(self, tuple(claves))
