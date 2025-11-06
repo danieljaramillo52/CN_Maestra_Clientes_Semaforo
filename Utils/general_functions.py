@@ -244,14 +244,18 @@ def menu(app):
     acciones = {
         "1": lambda: app.ejecutar_parcial("directa"),
         "2": lambda: app.ejecutar_parcial("indirecta"),
-        "3": app.ejecutar_todo,
+        "3": lambda: app.ejecutar_parcial("inactivos_directa"),
+        "4": lambda: app.ejecutar_parcial("inactivos_indirecta"),
+        "5": app.ejecutar_todo,
     }
 
     while True:
         print("\n=== MENÚ ===")
-        print("1) Ejecutar DIRECTA")
-        print("2) Ejecutar INDIRECTA")
-        print("3) Ejecutar TODO")
+        print("1) Ejecutar UNIVERSO DIRECTA")
+        print("2) Ejecutar UVIERSO INDIRECTA")
+        print("3) Ejecutar INACTIVOS DIRECTA")
+        print("4) Ejecutar INACTIVOS INDIRECTA")
+        print("5) Ejecutar TODO")
         print("0) Salir")
         opcion = input("Selecciona una opción: ").strip()
 

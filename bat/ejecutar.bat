@@ -1,6 +1,6 @@
 @echo off
 echo ===============================
-echo Ejecucion proyecto maestra univeros directa...
+echo Ejecucion proyecto maestra univeros Directa e Indirecta.
 echo ===============================
 
 echo Ejecutando la automatizacion...

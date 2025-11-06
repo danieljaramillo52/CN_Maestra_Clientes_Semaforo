@@ -6,7 +6,11 @@ import Utils.data_quality_functions as dqf
 import Utils.transformation_functions as tf
 import Utils.proyect_functions as proy_ft
 from Controllers.config_loader import ConfigLoader
-from Controllers.process import directa_controller, indirecta_controller
+from Controllers.process import (
+    directa_controller,
+    indirecta_controller,
+    inactivos_dir_controller,
+)
 
 
 class Aplicacion:
@@ -39,6 +43,7 @@ class Aplicacion:
         # Variables privadas para lazy initialization
         self._directa = None
         self._indirecta = None
+        self._inactivos_directa = None
         self._drivers = None
 
     # Inicialización de procesos
@@ -90,6 +95,16 @@ class Aplicacion:
             )
         return self._indirecta
 
+    @property
+    def inactivos_directa(self):
+        """Devuelve una instancia de ProcesoIndirecta solo al primer acceso."""
+        if self._inactivos_directa is None:
+            cfg_inactivos_directa = self.config_view("insumos", "directa")
+            self._inactivos_directa = inactivos_dir_controller.ProcesoDirectaInactivos(
+                cfg_inactivos_directa, cfg_cols=self.cfg_cols, dict_drivers=self.drivers
+            )
+        return self._inactivos_directa
+
     @gf.registro_tiempo
     def ejecutar_parcial(self, proceso: str):
         """Ejecuta parcialmente un proceso específico."""
@@ -97,6 +112,8 @@ class Aplicacion:
             self.directa.ejecutar()
         elif proceso == "indirecta":
             self.indirecta.ejecutar()
+        elif proceso == "inactivos_directa":
+            self.inactivos_directa.ejecutar()
         else:
             raise ValueError(f"Proceso '{proceso}' no reconocido.")
 
@@ -105,6 +122,7 @@ class Aplicacion:
         """Ejecuta ambos procesos completos en secuencia."""
         self.directa.ejecutar()
         self.indirecta.ejecutar()
+        self.inactivos_directa.ejecutar()
 
 
 if __name__ == "__main__":
@@ -117,17 +135,25 @@ if __name__ == "__main__":
     path_insumos_drvs = dqf.ensure_dir(base_dir=cfg_insumos("drivers", "path"))
 
     # Validación de insumos.
-    path_vtas = dqf.resolve_existing_file(
+    dqf.resolve_existing_file(
         base_dir=path_insumos_dir,
         filename=cfg_insumos.require("directa", "universo_directa", "nom_base"),
     )
+    dqf.resolve_existing_file(
+        base_dir=path_insumos_dir,
+        filename=cfg_insumos.require("directa", "base_inicio_mes_dir", "nom_base"),
+    )
 
-    path_vtas = dqf.resolve_existing_file(
+    dqf.resolve_existing_file(
         base_dir=path_insumos_indir,
         filename=cfg_insumos.require("indirecta", "universo_indirecta", "nom_base"),
     )
+    dqf.resolve_existing_file(
+        base_dir=path_insumos_indir,
+        filename=cfg_insumos.require("indirecta", "base_inicio_mes_indir", "nom_base"),
+    )
 
-    path_vtas = dqf.resolve_existing_file(
+    dqf.resolve_existing_file(
         base_dir=path_insumos_drvs,
         filename=cfg_insumos.require("drivers", "nom_base"),
     )

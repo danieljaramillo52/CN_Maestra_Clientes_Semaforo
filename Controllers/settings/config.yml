@@ -31,15 +31,14 @@ insumos:
         - origen: "Cod Cliente"
           destinos: ["Cod Actual", "Cliente"]
 
-    base_inicio_mes_dir:
-      nom_base: "Base Inicio Mes - Directa.xlsx"
-      nom_hoja: "Clientes_Activos_AGCO"
-      renombrar_cols: {
+    maestra_inactivos_dir:
+      nom_base: "Maestra Inactivos Directa.xlsx"
+      nom_hoja: "Clientes_Inactivos_AGCO"
+      renombrar_cols: &cols_maes_indir {
         "Nºcliente": "Cod Cliente",
         "Nombre 1": "Razón Social",
         "Coment referentes di": "Nombre Comercial",
         "Cód. Población" : "Cód. Población",
-        "Población": "Municipio",
         "Región": "Cód. Departamento",
         "Calle y nº": "Dirección",
         "Distrito": "Barrio",
@@ -53,20 +52,8 @@ insumos:
         "Coordenada X": "Coordenada X",
         "Coordenada Y": "Coordenada Y"
       }
-
-      # cols_duplicar: Lista donde cada elemento es un dict[str: list[str]]
-      cols_duplicar:
-        - origen: "Cód. Jefe de Ventas"
-          destinos: ["Cód. Vendedor"]
-        - origen: "Jefe de Ventas"
-          destinos: ["Nombre Vendedor"]
-        - origen: "Cod Cliente"
-          destinos: ["Cod Actual", "Cliente"]
-
-      orden_prioridad_jv_vend : ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
-      path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
-      
-      # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
+      orden_prioridad_jv_vend : &orden_prioridad ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
+            # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
       # Cada lista representa las columnas usadas en el merge.
       par_cols_merge_drv_tipologia: &par_col_merge_tip
         canal_transformado:
@@ -78,6 +65,30 @@ insumos:
         segmento_transformado:
           - Cód. Segmento Transformado
           - Segmento Transformado
+
+      path_guardado : "Resultados/maestra_inactivos_directa_final.xlsx"
+
+    base_inicio_mes_dir:
+      nom_base: "Base Inicio Mes - Directa.xlsx"
+      nom_hoja: "Clientes_Activos_AGCO"
+      renombrar_cols:  
+        <<: *cols_maes_indir
+        "Población": "Municipio"
+      
+      # cols_duplicar: Lista donde cada elemento es un dict[str: list[str]]
+      cols_duplicar:
+        - origen: "Cód. Jefe de Ventas"
+          destinos: ["Cód. Vendedor"]
+        - origen: "Jefe de Ventas"
+          destinos: ["Nombre Vendedor"]
+        - origen: "Cod Cliente"
+          destinos: ["Cod Actual", "Cliente"]
+
+      orden_prioridad_jv_vend : *orden_prioridad 
+      path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
+           
+      par_cols_merge_drv_tipologia: 
+          <<: *par_col_merge_tip
 
     # Orden final de columnas para el proceso de la directa. 
     cols_finales: &cols_finales 
