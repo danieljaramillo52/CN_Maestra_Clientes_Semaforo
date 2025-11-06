@@ -1,35 +1,36 @@
 # Configuración editable del proyecto. (Manipulación de parámetros proyecto.)
 
 insumos:
-    # Orden final de columnas para los universos
-    cols_finales:
-      - "Cod Cliente"
-      - "Razón Social"
-      - "Nombre Comercial"
-      - "Cód. Jefe de Ventas"
-      - "Jefe de Ventas"
-      - "Función Inter."
-      - "Cód. Vendedor"
-      - "Nombre Vendedor"
-      - "Canal Transformado"
-      - "Subcanal Transformado"
-      - "Segmento Transformado"
-      - "Cód. Oficina de Ventas"
-      - "Oficina de Ventas"
-      - "Regional"
-      - "Región"
-      - "Dirección"
-      - "Barrio"
-      - "Municipio"
-      - "Departamento"
-      - "Tipo Población"
-      - "Coordenadas Unificado (Y-X)"
-      - "Cod Actual"
-      - "Cliente"
-      - "Fuente"
-    universo_directa:
-        orden_prioridad_jv_vend: ["ZA", "Z1"]
-    base_inicio_mes_dir:
-        orden_prioridad_jv_vend: ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]
-        path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
-    path_guardado : "Resultados/universo_directa_completo.xlsx"
+    directa:
+        # Orden final de columnas para los universos
+        cols_finales:
+            - "Cod Cliente"
+            - "Razón Social"
+            - "Nombre Comercial"
+            - "Cód. Jefe de Ventas"
+            - "Jefe de Ventas"
+            - "Función Inter."
+            - "Cód. Vendedor"
+            - "Nombre Vendedor"
+            - "Canal Transformado"
+            - "Subcanal Transformado"
+            - "Segmento Transformado"
+            - "Cód. Oficina de Ventas"
+            - "Oficina de Ventas"
+            - "Regional"
+            - "Región"
+            - "Dirección"
+            - "Barrio"
+            - "Municipio"
+            - "Departamento"
+            - "Tipo Población"
+            - "Coordenadas Unificado (Y-X)"
+            - "Cod Actual"
+            - "Cliente"
+            - "Fuente"
+        universo_directa:
+            orden_prioridad_jv_vend: ["ZA", "Z1"]
+        base_inicio_mes_dir:
+            orden_prioridad_jv_vend: ["Z6", "ZA", "Z1", "Z7","Y8","Y9", "Y3", "RG"]
+            path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
+        path_guardado : "Resultados/universo_directa_completo.xlsx"

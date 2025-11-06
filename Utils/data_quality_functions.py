@@ -2,12 +2,13 @@ from __future__ import annotations
 from loguru import logger
 import logging
 import sys
+from typing import Literal
 from functools import wraps
 from pathlib import Path
 import pandas as pd
 
 
-def manejar_excepciones(func):
+def manejar_excepciones(func, modo: Literal["produccion", "debug"] = "produccion"):
     """
     Decorador minimalista para capturar errores comunes de sistema de archivos,
     registrarlos en CRITICAL con traza y finalizar el proceso con código 1.
@@ -18,6 +19,10 @@ def manejar_excepciones(func):
     Returns:
         wrapper: Función envuelta con manejo de excepciones y salida controlada.
     """
+    if modo == "debug":
+        val_excep = True
+    else:
+        val_excep = False
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -25,19 +30,19 @@ def manejar_excepciones(func):
             return func(*args, **kwargs)
 
         except NotADirectoryError as e:
-            logger.opt(exception=True).critical(f"Directorio inválido: {e}")
+            logger.opt(exception=val_excep).critical(f"Directorio inválido: {e}")
             sys.exit(1)
         except FileNotFoundError as e:
-            logger.opt(exception=True).critical(f"Archivo no encontrado: {e}")
+            logger.opt(exception=val_excep).critical(f"Archivo no encontrado: {e}")
             sys.exit(1)
         except PermissionError as e:
-            logger.opt(exception=True).critical(f"Permiso denegado: {e}")
+            logger.opt(exception=val_excep).critical(f"Permiso denegado: {e}")
             sys.exit(1)
         except OSError as e:
-            logger.opt(exception=True).critical(f"Error de E/S del sistema: {e}")
+            logger.opt(exception=val_excep).critical(f"Error de E/S del sistema: {e}")
             sys.exit(1)
         except Exception as e:
-            logger.opt(exception=True).critical(f"Error inesperado: {e}")
+            logger.opt(exception=val_excep).critical(f"Error inesperado: {e}")
             sys.exit(1)
 
     return wrapper
@@ -54,10 +59,11 @@ def ensure_dir(base_dir: str | Path) -> Path:
     Returns:
         Path: Ruta absoluta del directorio validado.
     """
-    base = Path(base_dir)
-    if not base.is_dir():
-        raise NotADirectoryError(base)
-    return base.resolve()
+    if base_dir:
+        base = Path(base_dir)
+        if not base.is_dir():
+            raise NotADirectoryError(base)
+        return base.resolve()
 
 
 @manejar_excepciones

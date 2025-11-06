@@ -1,6 +1,7 @@
 from Utils.general_functions import procesar_configuracion
 from loguru import logger
 from typing import Any, Tuple
+import sys
 
 
 class ConfigView:
@@ -199,6 +200,7 @@ class ConfigLoader:
                 logger.debug(
                     f"Clave de configuración no encontrada: {' > '.join(claves)}"
                 )
+                sys.exit(1)
                 return por_defecto
         return actual
 
