@@ -30,13 +30,19 @@ def manejar_excepciones(func, modo: Literal["produccion", "debug"] = "produccion
             return func(*args, **kwargs)
 
         except NotADirectoryError as e:
-            logger.opt(exception=val_excep).critical(f"Directorio inválido: {e}")
+            logger.opt(exception=val_excep).critical(
+                f"Directorio inválido (verifique que la carpeta exista.): {e}"
+            )
             sys.exit(1)
         except FileNotFoundError as e:
-            logger.opt(exception=val_excep).critical(f"Archivo no encontrado: {e}")
+            logger.opt(exception=val_excep).critical(
+                f"Archivo no encontrado. Verifique que el archivo este presente en: {e}"
+            )
             sys.exit(1)
         except PermissionError as e:
-            logger.opt(exception=val_excep).critical(f"Permiso denegado: {e}")
+            logger.opt(exception=val_excep).critical(
+                f"Permiso denegado (Verique que los archivos excel están cerrado.): {e}"
+            )
             sys.exit(1)
         except OSError as e:
             logger.opt(exception=val_excep).critical(f"Error de E/S del sistema: {e}")

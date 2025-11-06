@@ -1,7 +1,7 @@
 # Configuración base de la aplicación.
 insumos:
   directa:
-    path: "Insumos/Directa1/"
+    path: "Insumos/Directa/"
     universo_directa:
       nom_base: "Universo de Clientes - Directa.xlsb"
       nom_hoja: "Maestra"
