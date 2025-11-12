@@ -1,17 +1,13 @@
 # Lógica especifica del negocio.
 from Utils.general_functions import registro_tiempo
-from Utils.transformation_functions import (
-    pd_left_merge_two_keys,
-    seleccionar_columnas_pd,
-)
 from pandas import DataFrame
 from loguru import logger
-from typing import Dict
+from typing import List
 
 
 @registro_tiempo
 def eliminar_duplicados_por_prioridad(
-    df: DataFrame, col_clave: str, col_prioridad: str, orden_prioridad: list[str]
+    df: DataFrame, col_clave: str, col_prioridad: str, orden_prioridad: List[str]
 ) -> DataFrame:
     """
     Elimina duplicados en un DataFrame según una columna clave, conservando
@@ -66,54 +62,3 @@ def eliminar_duplicados_por_prioridad(
     except Exception as e:
         logger.critical(f"Error al eliminar duplicados según jerarquía: {e}")
         return df
-
-
-def merge_con_tipologia(
-    df_base: DataFrame,
-    drv_tipologia: DataFrame,
-    par_cols: Dict[str, list[str]],
-) -> DataFrame:
-    """
-    Realiza una serie de merges sucesivos entre un DataFrame base y un
-    DataFrame de tipologías, utilizando la configuración de columnas
-    proporcionada en `par_cols`.
-
-    Args:
-        df_base (pd.DataFrame): DataFrame base sobre el que se harán los merges.
-        drv_tipologia (pd.DataFrame): DataFrame con la información de tipologías (driver).
-        par_cols (dict[str, list[str]]): Diccionario que define los pares de columnas
-            a usar en cada merge. Ejemplo:
-            {
-                "canal": ["cod_canal", "nom_canal"],
-                "subcanal": ["cod_subcanal", "nom_subcanal"]
-            }
-        tf (Any): Módulo o clase con las funciones auxiliares:
-            - seleccionar_columnas_pd(df, cols_elegidas)
-            - pd_left_merge_two_keys(base_left, base_right, left_key)
-
-    Returns:
-        pd.DataFrame: Resultado final tras aplicar los merges sucesivos.
-    """
-    try:
-        df_result = df_base.copy()
-
-        for tipo, cols in par_cols.items():
-            # Desempaquetar columnas (código, nombre)
-            col_codigo, *_ = cols
-
-            # Seleccionar y limpiar el driver
-            df_drv = seleccionar_columnas_pd(drv_tipologia, cols_elegidas=cols).dropna(
-                subset=[col_codigo]
-            )
-
-            # Merge progresivo
-            df_result = pd_left_merge_two_keys(
-                base_left=df_result,
-                base_right=df_drv,
-                left_key=col_codigo,
-            )
-
-        return df_result
-
-    except Exception as e:
-        raise RuntimeError(f"❌ Error en merge_con_tipologia: {e}") from e

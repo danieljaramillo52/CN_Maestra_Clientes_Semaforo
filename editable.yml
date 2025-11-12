@@ -12,6 +12,7 @@ insumos:
             - "Función Inter."
             - "Cód. Vendedor"
             - "Nombre Vendedor"
+            - "Cód. Tipología"
             - "Canal Transformado"
             - "Subcanal Transformado"
             - "Segmento Transformado"

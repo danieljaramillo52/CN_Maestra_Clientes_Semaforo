@@ -19,9 +19,7 @@ insumos:
           "Of. de Ventas": "Oficina de Ventas",
           "Regional": "Regional",
           "Región": "Región",
-          "Canal Trans": "Canal Transformado",
-          "Subcanal trans": "Subcanal Transformado",
-          "Segmento Trans": "Segmento Transformado",
+          "Cód. Tipología" : "Cód. Tipología",
           "Nombre Vendedor": "Nombre Vendedor",
           "Cód. Jefe Vtas": "Cód. Jefe de Ventas",
           "Nombre Jefe Ventas": "Jefe de Ventas",
@@ -43,9 +41,7 @@ insumos:
         "Calle y nº": "Dirección",
         "Distrito": "Barrio",
         "Ofic venta": "Cód. Oficina de Ventas",
-        "Canal dist": "Cód. Canal Transformado",
-        "Grup clien": "Cód. Sub Canal Transformado",
-        "Grupo clie": "Cód. Segmento Transformado",
+        "Grupo clie": "Cód. Tipología",
         "Función in": "Función Inter.",
         "Núm person": "Cód. Jefe de Ventas",
         "Nombre de pila": "Jefe de Ventas",
@@ -53,18 +49,8 @@ insumos:
         "Coordenada Y": "Coordenada Y"
       }
       orden_prioridad_jv_vend : &orden_prioridad ["Z6", "ZA", "Z1", "Z7", "Z5", "Y9", "Y3", "RG"]
-            # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
+      # Diccionario donde cada clave tiene una lista de columnas: dict[str: list[str]]
       # Cada lista representa las columnas usadas en el merge.
-      par_cols_merge_drv_tipologia: &par_col_merge_tip
-        canal_transformado:
-          - Cód. Canal Transformado
-          - Canal Transformado
-        subcanal_transformado:
-          - Cód. Sub Canal Transformado
-          - Subcanal Transformado
-        segmento_transformado:
-          - Cód. Segmento Transformado
-          - Segmento Transformado
 
       path_guardado : "Resultados/maestra_inactivos_directa_final.xlsx"
 
@@ -85,11 +71,7 @@ insumos:
           destinos: ["Cod Actual", "Cliente"]
 
       orden_prioridad_jv_vend : *orden_prioridad 
-      path_guardado_faltantes_uni : "Resultados/faltantes_base_inicio_mes.xlsx"
-           
-      par_cols_merge_drv_tipologia: 
-          <<: *par_col_merge_tip
-
+          
     # Orden final de columnas para el proceso de la directa. 
     cols_finales: &cols_finales 
       - "Cod Cliente"
@@ -121,7 +103,7 @@ insumos:
 
   indirecta:
     path: "Insumos/Indirecta/"
-    universo_indirecta:
+    universo_indirecta: 
       nom_base: "Universo de Clientes - Indirecta.xlsb"
       nom_hoja: "BD"
       renombrar_cols: 
@@ -146,41 +128,57 @@ insumos:
     
     path_guardado : "Resultados/universo_indirecta_completo.xlsx"
     path_nulos : "Resultados/df_municipios_nulos.xlsx"
+    
+    dict_cols_comunes_indir_amovil_inacindir: &cols_comunes_indirecta
+      COD_AC: "Cód. Jefe de Ventas"
+      AGENTE_COMERCIAL: "Jefe de Ventas"
+      CODIGO_ECOM: "Cod Cliente"
+      NOMBRE_NEG: "Nombre Comercial"
+      COD_DPTO: "Cód. Departamento"
+      COD_CIUDAD: "Cód. Población"
+      BARRIO: "Barrio"
+      COORDENADA_X: "Coordenada X"
+      COORDENADA_Y: "Coordenada Y"
+      TIPOLOGIA: "Cód. Tipología"
+      RAZON_SOCIAL: "Razón Social"
+      DIRECCION : "Dirección"
 
     base_inicio_mes_indir:
       nom_base: "Base Inicio Mes - Indirecta.xlsx"
       nom_hoja: "Comercial Nutresa"
-      renombrar_cols: 
-        COD_AC: "Cód. Jefe de Ventas"
-        AGENTE_COMERCIAL: "Jefe de Ventas"
-        CODIGO_ECOM: "Cod Cliente"
-        RAZON_SOCIAL: "Razón Social"
-        DIRECCION: "Dirección"
-        NOMBRE_NEG: "Nombre Comercial"
-        COD_DPTO: "Cód. Departamento"
-        COD_CIUDAD: "Cód. Población"
-        BARRIO: "Barrio"
-        CANAL_CLIENTE: "Cód. Canal Transformado"
-        SUBCANAL_CLIENTE: "Cód. Sub Canal Transformado"
-        COORDENADA_X: "Coordenada X"
-        COORDENADA_Y: "Coordenada Y"
+      renombrar_cols:  
+        <<: *cols_comunes_indirecta
         COD_CRM: "Cod Actual"
-        TIPOLOGIA: "Cód. Segmento Transformado"
         COD_OF_VENTAS: "Cód. Oficina de Ventas"
-      
+
       dict_cn_sub_seg_null:
         "Canal Transformado" : "Otros Canales"
         "Subcanal Transformado" : "Otros Sub Canales"
         "Segmento Transformado" : "Otros Segmentos"
 
-      dict_cols_constantes : 
+      dict_cols_constantes :  
         "Función Inter." : "-"
         "Cód. Vendedor": "Sin Zona"
         "Nombre Vendedor" : "Sin Zona"
 
-      par_cols_merge_drv_tipologia: 
-        <<: *par_col_merge_tip
-    
+    maestra_inactivos_amovil:
+      nom_base: "MaestraClientesInactivos Amovil.xlsx"
+      nom_hoja: "Comercial Nutresa"
+      renombrar_cols: 
+        "CODCRM" : "Cod Actual"
+        "COD_REGION" : "Cód. Oficina de Ventas"
+        <<: *cols_comunes_indirecta
+
+      path_guardado_inac : "Resultados/maestra_inactivos_directa_final.xlsx" 
+
+    maestra_inactivos_indir:
+      nom_base: "Maestra Inactivos Indirecta.xlsx"
+      nom_hoja: "Comercial Nutresa"
+      renombrar_cols: 
+        COD_CRM : "Cod Actual"
+        "COD_REGION" : "Cód. Oficina de Ventas"
+        <<: *cols_comunes_indirecta
+      
     cols_finales : *cols_finales
 
   drivers:
@@ -194,11 +192,9 @@ insumos:
         - "Regional"
         - "Región"
       "Tipologías":
-        - "Cód. Canal Transformado"
+        - "Cód. Tipología"
         - "Canal Transformado"
-        - "Cód. Sub Canal Transformado"
         - "Subcanal Transformado"
-        - "Cód. Segmento Transformado"
         - "Segmento Transformado"
       "Municipios":
         - "Cód. Población"
@@ -220,9 +216,6 @@ dict_cols : {
     "direccion": "Dirección",
     "barrio": "Barrio",
     "cod_oficina": "Cód. Oficina de Ventas",
-    "canal": "Cód. Canal Transformado",
-    "subcanal": "Cód. Sub Canal Transformado",
-    "segmento": "Cód. Segmento Transformado",
     "canal_trans": "Canal Transformado",
     "subcn_trans" : "Subcanal Transformado",
     "segm_trans" : "Segmento Transformado",
@@ -239,6 +232,7 @@ dict_cols : {
     "coord_unif" : "Coordenadas Unificado (Y-X)",
     "cod_actual" : "Cod Actual",
     "cliente" : "Cliente",
+    "cod_tipologia" : "Cód. Tipología",
     # Constantes no columnas. valor_nulo utilizado para rellenar nulos masivamente
     "valor_nulo" : "N/A",
     "valor_guion" : "-",

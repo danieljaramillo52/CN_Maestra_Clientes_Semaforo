@@ -53,7 +53,7 @@ def renombrar_columnas_con_diccionario(
 
     try:
         df_renombrado = df.rename(columns=cols_to_rename, inplace=False)
-        logger.success("Proceso de renombrar columnas satisfactorio: ")
+        # logger.success("Proceso de renombrar columnas satisfactorio: ")
     except Exception:
         logger.critical("Proceso de renombrar columnas fallido.")
         raise Exception
@@ -178,7 +178,7 @@ def reemplazar_columna_en_funcion_de_otra(
     try:
         df_copy = df.copy()
 
-        logger.info(f"Inicio de reemplazamiento de datos en {nom_columna_a_reemplazar}")
+        # logger.info(f"Inicio de reemplazamiento de datos en {nom_columna_a_reemplazar}")
 
         df_copy.loc[:, nom_columna_a_reemplazar] = where(
             df_copy[nom_columna_de_referencia].isin(mapeo.keys()),
@@ -187,7 +187,7 @@ def reemplazar_columna_en_funcion_de_otra(
         )
 
         mensaje = f"Proceso de reemplazamiento en {nom_columna_a_reemplazar} exitoso"
-        logger.info(mensaje)
+        # logger.info(mensaje)
 
     except Exception as e:
         logger.critical(

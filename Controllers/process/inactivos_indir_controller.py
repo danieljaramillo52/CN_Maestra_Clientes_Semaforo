@@ -6,12 +6,10 @@ import Utils.general_functions as gf
 import Utils.transformation_functions as tf
 
 
-class ProcesoIndirecta:
+class ProcesoIndirectaInactivos:
     """Proceso para la parte Indirecta del proyecto."""
 
     FUENTE = "Fuente"
-    VALOR_UNIVERSO = "universo"
-    VALOR_BASE_INICIO_MES = "base_inicio_mes"
     LISTA_COORD_NULL = ["0, 0 ", ", ", "0.0, 0.0"]
 
     def __init__(
@@ -22,126 +20,93 @@ class ProcesoIndirecta:
         self.dict_drivers = dict_drivers
 
     def ejecutar(self, parcial: bool = False):
-        logger.info("\n=== Iniciando proceso INDIRECTA ===")
+        logger.info("\n=== Iniciando proceso INACTIVOS INDIRECTA ===")
 
-        COLS_UNIVERSO = [*self.cfg("universo_indirecta", "renombrar_cols")]
-        COLS_BASE_IN_MES = [*self.cfg("base_inicio_mes_indir", "renombrar_cols")]
+        COLS_AMOVIL = [*self.cfg("maestra_inactivos_amovil", "renombrar_cols")]
+        COLS_DF_INAC_INDIR = [*self.cfg("maestra_inactivos_indir", "renombrar_cols")]
 
-        df_unviverso_min = gf.lectura_insumos_excel(
+        df_inac_amovil = gf.lectura_insumos_excel(
             path=self.cfg("path"),
-            nom_insumo=self.cfg("universo_indirecta", "nom_base"),
-            nom_hoja=self.cfg("universo_indirecta", "nom_hoja"),
-            engine="pyxlsb",
+            nom_insumo=self.cfg("maestra_inactivos_amovil", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_amovil", "nom_hoja"),
+            modo_pruebas=True,
+        )
+        df_inac_amovil.columns = df_inac_amovil.columns.str.strip().str.upper()
+
+        # Eliminar columnas no coincidentes si exsiten.
+        df_inac_indir = gf.lectura_insumos_excel(
+            path=self.cfg("path"),
+            nom_insumo=self.cfg("maestra_inactivos_indir", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_indir", "nom_hoja"),
             modo_pruebas=True,
         )
 
-        df_ini_mes_min = gf.lectura_insumos_excel(
-            path=self.cfg("path"),
-            nom_insumo=self.cfg("base_inicio_mes_indir", "nom_base"),
-            nom_hoja=self.cfg("base_inicio_mes_indir", "nom_hoja"),
-            modo_pruebas=True,
-        )
         # Validación de columnas esperadas
         verificar_columnas(
-            df=df_unviverso_min,
-            columnas_esperadas=COLS_UNIVERSO,
-            nombre_arc=self.cfg("universo_indirecta", "nom_base"),
-            nom_hoja=self.cfg("universo_indirecta", "nom_hoja"),
+            df=df_inac_amovil,
+            columnas_esperadas=COLS_AMOVIL,
+            nombre_arc=self.cfg("maestra_inactivos_amovil", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_amovil", "nom_hoja"),
         )
         verificar_columnas(
-            df=df_ini_mes_min,
-            columnas_esperadas=COLS_BASE_IN_MES,
-            nombre_arc=self.cfg("base_inicio_mes_indir", "nom_base"),
-            nom_hoja=self.cfg("base_inicio_mes_indir", "nom_hoja"),
+            df=df_inac_indir,
+            columnas_esperadas=COLS_DF_INAC_INDIR,
+            nombre_arc=self.cfg("maestra_inactivos_indir", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_indir", "nom_hoja"),
         )
         # Carga insumos proceso indirecta.
-        df_unviverso = gf.lectura_insumos_excel(
+        df_inac_amovil = gf.lectura_insumos_excel(
             path=self.cfg("path"),
-            nom_insumo=self.cfg("universo_indirecta", "nom_base"),
-            nom_hoja=self.cfg("universo_indirecta", "nom_hoja"),
-            engine="pyxlsb",
-            cols=COLS_UNIVERSO,
-            # modo_pruebas=True,
-        )
-        df_unviverso_wtout_dup = df_unviverso.drop_duplicates()
-
-        df_ini_mes = gf.lectura_insumos_excel(
-            path=self.cfg("path"),
-            nom_insumo=self.cfg("base_inicio_mes_indir", "nom_base"),
-            nom_hoja=self.cfg("base_inicio_mes_indir", "nom_hoja"),
-            cols=COLS_BASE_IN_MES,
+            nom_insumo=self.cfg("maestra_inactivos_amovil", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_amovil", "nom_hoja"),
             # modo_pruebas=True,
         )
 
-        df_ini_mes_ren = tf.renombrar_columnas_con_diccionario(
-            df=df_ini_mes,
-            cols_to_rename=self.cfg("base_inicio_mes_indir", "renombrar_cols"),
+        df_inac_amovil.columns = df_inac_amovil.columns.str.strip().str.upper()
+
+        df_inac_amovil = tf.seleccionar_columnas_pd(
+            df=df_inac_amovil, cols_elegidas=COLS_AMOVIL
         )
 
-        df_unviverso_ren = tf.renombrar_columnas_con_diccionario(
-            df=df_unviverso_wtout_dup,
-            cols_to_rename=self.cfg("universo_indirecta", "renombrar_cols"),
+        df_inidir_inac = gf.lectura_insumos_excel(
+            path=self.cfg("path"),
+            nom_insumo=self.cfg("maestra_inactivos_indir", "nom_base"),
+            nom_hoja=self.cfg("maestra_inactivos_indir", "nom_hoja"),
+            cols=COLS_DF_INAC_INDIR,
+            # modo_pruebas=True,
         )
+
+        df_inidir_inac_ren = tf.renombrar_columnas_con_diccionario(
+            df=df_inidir_inac,
+            cols_to_rename=self.cfg("maestra_inactivos_indir", "renombrar_cols"),
+        )
+
+        df_inac_amovil_ren = tf.renombrar_columnas_con_diccionario(
+            df=df_inac_amovil,
+            cols_to_rename=self.cfg("maestra_inactivos_amovil", "renombrar_cols"),
+        )
+
+        # Concatenar dfs.
+        df_inac_indir_complto = concat([df_inac_amovil_ren, df_inidir_inac_ren])
 
         # Obtener coordenadas completas.
-        df_ini_mes_ren = tf.concatenar_columnas_pd(
-            df=df_ini_mes_ren,
+        df_inac_indir_complto = tf.concatenar_columnas_pd(
+            df=df_inac_indir_complto,
             cols_elegidas=[self.cfg_cols("coord_y"), self.cfg_cols("coord_x")],
             nueva_columna=self.cfg_cols("coord_unif"),
             separador=", ",
             usar_separador=True,
-        )
-        # Tomar columnas referentes a cordenadas (Pregunta Agente - cliente)
-        df_ini_mes_coord = tf.seleccionar_columnas_pd(
-            df=df_ini_mes_ren,
-            cols_elegidas=[
-                self.cfg_cols("cod_jefe_vtas"),
-                self.cfg_cols("cod_cliente"),
-                self.cfg_cols("coord_unif"),
-            ],
-        )
-        # Traer las coordenadas unificadas al universo.
-        df_unviverso_merge = merge(
-            left=df_unviverso_ren,
-            right=df_ini_mes_coord.drop_duplicates(),
-            on=[
-                self.cfg_cols("cod_jefe_vtas"),
-                self.cfg_cols("cod_cliente"),
-            ],
-            how="left",
-        )
-
-        # Tomar solo clientes que estan en base inicio mes y no en universo.
-        df_ini_mes_ren = df_ini_mes_ren[
-            ~df_ini_mes_ren["Cod Cliente"].isin(df_unviverso_merge["Cod Cliente"])
-        ]
-
-        dict_reemplazos_jv = gf.crear_diccionario_desde_dataframe(
-            df=df_unviverso_merge,
-            col_clave=self.cfg_cols("cod_jefe_vtas"),
-            col_valor=self.cfg_cols("nom_jefe_vtas"),
-        )
-        # Traer nombre correcto jefe de vtas.
-        df_ini_mes_ren = tf.reemplazar_columna_en_funcion_de_otra(
-            df=df_ini_mes_ren,
-            nom_columna_de_referencia=self.cfg_cols("cod_jefe_vtas"),
-            nom_columna_a_reemplazar=self.cfg_cols("nom_jefe_vtas"),
-            mapeo=dict_reemplazos_jv,
         )
 
         # Aignar columas constantes indirecta (base inicio mes y universo)
         for cada_col, cada_valor in self.cfg(
             "base_inicio_mes_indir", "dict_cols_constantes"
         ).items():
-            df_ini_mes_ren[cada_col] = cada_valor
-
-        df_unviverso_merge[self.cfg_cols("funcion_inter")] = self.cfg_cols(
-            "valor_guion"
-        )
+            df_inac_indir_complto[cada_col] = cada_valor
 
         # Ajustar las columnas: Cód. Canal/ Cód. Sub Canal Cód./Segmento) transformado.
-        df_ini_mes_ren = tf.modificar_caracteres_columna_pd(
-            df=df_ini_mes_ren,
+        df_inac_indir_complto = tf.modificar_caracteres_columna_pd(
+            df=df_inac_indir_complto,
             col=self.cfg_cols("cod_tipologia"),
             n=2,
             accion="conservar",
@@ -150,20 +115,19 @@ class ProcesoIndirecta:
         # Extraer la tabla de tipologías del diccionario de drivers
         drv_tipologias = self.dict_drivers.get("Tipologías")
 
-        #  Diccionario con las configuraciones de columnas
-        df_ini_mes_ren_copy = df_ini_mes_ren.copy()
+        df_inac_indir_complto_copy = df_inac_indir_complto.copy()
 
         # Lógica de negocio merge sucesivos con el drv_tipologias usando la configuración establecida.
-        df_ini_mes_merge = tf.pd_left_merge_two_keys(
-            base_left=df_ini_mes_ren_copy,
+        df_ind_inac_merge = tf.pd_left_merge_two_keys(
+            base_left=df_inac_indir_complto_copy,
             base_right=drv_tipologias,
             left_key=self.cfg_cols("cod_tipologia"),
         )
         # Traer información de driver regional
         drv_region = self.dict_drivers.get("Regionales")
 
-        df_ini_mes_merge_reg = tf.pd_left_merge_two_keys(
-            base_left=df_ini_mes_merge,
+        df_ind_ina_merge_reg = tf.pd_left_merge_two_keys(
+            base_left=df_ind_inac_merge,
             base_right=drv_region,
             left_key=self.cfg_cols("cod_oficina"),
         )
@@ -177,8 +141,8 @@ class ProcesoIndirecta:
         ].str.lower()
 
         # Tnasformación para relacionar municipio y departamento base y driver
-        df_ini_mes_merge_reg = merge(
-            left=df_ini_mes_merge_reg,
+        df_ind_ina_merge_reg = merge(
+            left=df_ind_ina_merge_reg,
             right=drv_municipios.drop_duplicates(
                 subset=[
                     self.cfg_cols("cod_poblacion"),
@@ -192,31 +156,17 @@ class ProcesoIndirecta:
             how="left",
         )
 
-        df_unviverso_merge = merge(
-            left=df_unviverso_merge,
-            right=drv_municipios.drop_duplicates(subset=self.cfg_cols("cod_poblacion")),
-            on=[self.cfg_cols("cod_poblacion")],
-            how="left",
-        )
-
-        df_unviverso_merge.loc[:, self.FUENTE] = self.VALOR_UNIVERSO
-        df_ini_mes_merge_reg.loc[:, self.FUENTE] = self.VALOR_BASE_INICIO_MES
-
         # Tratar canales / subcanal / segmentos restantes
-        df_ini_mes_merge_reg = tf.reemplazar_nulos_con_dict(
-            df=df_ini_mes_merge_reg,
+        df_ind_ina_merge_reg = tf.reemplazar_nulos_con_dict(
+            df=df_ind_ina_merge_reg,
             valores_por_defecto=self.cfg(
                 "base_inicio_mes_indir", "dict_cn_sub_seg_null"
             ),
         )
 
-        df_base_completa = concat(
-            objs=[df_unviverso_merge, df_ini_mes_merge_reg], join="inner"
-        )
-
         # Crear columna cliente.
         df_base_completa = tf.concatenar_columnas_pd(
-            df=df_base_completa,
+            df=df_ind_ina_merge_reg,
             cols_elegidas=[
                 self.cfg_cols("cod_jefe_vtas"),
                 self.cfg_cols("cod_cliente"),
@@ -239,11 +189,6 @@ class ProcesoIndirecta:
         df_base_completa[self.cfg_cols("coord_unif")] = df_base_completa[
             self.cfg_cols("coord_unif")
         ].replace(self.LISTA_COORD_NULL, self.cfg_cols("valor_guion"), regex=False)
-
-        #  Determinar registros con elementos nulos (Municipio)
-        df_nulos_mun = df_base_completa[
-            df_base_completa[self.cfg_cols("municipio")].isnull()
-        ]
 
         # Reemplazar nulos por defecto.
         df_base_completa = tf.remplazar_nulos_multiples_columnas_pd(
@@ -272,18 +217,19 @@ class ProcesoIndirecta:
             nom_columna_de_referencia=self.cfg_cols("cod_jefe_vtas"),
             mapeo=dict_jefe_nom_jefe,
         )
+        cols_finales = self.cfg("cols_finales")
+
+        cols_finales.remove(self.FUENTE)
 
         # Seleccionar cols finales
         df_final_select = tf.seleccionar_columnas_pd(
             df=df_base_completa, cols_elegidas=self.cfg("cols_finales")
         )
-        df_nulos_select = tf.seleccionar_columnas_pd(
-            df=df_nulos_mun,
-            cols_elegidas=self.cfg("cols_finales") + [self.cfg_cols("cod_poblacion")],
-        )
 
         # Exportar resultados
-        gf.exportar_a_excel(ruta_archivo=self.cfg("path_nulos"), df=df_nulos_select)
-        gf.exportar_a_excel(ruta_archivo=self.cfg("path_guardado"), df=df_final_select)
+        gf.exportar_a_excel(
+            ruta_archivo=self.cfg("maestra_inactivos_dir", "path_guardado"),
+            df=df_final_select,
+        )
 
         logger.info("=== Proceso Indirecta finalizado ===\n")

@@ -4,7 +4,7 @@ from Utils.data_quality_functions import verificar_columnas
 from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
-import Utils.proyect_functions as proy_ft
+from Utils.proyect_functions import eliminar_duplicados_por_prioridad
 
 
 class ProcesoDirectaInactivos:
@@ -23,7 +23,7 @@ class ProcesoDirectaInactivos:
         self.dict_drivers = dict_drivers
 
     def ejecutar(self):
-        logger.info("\n=== Iniciando proceso DIRECTA ===")
+        logger.info("\n=== Iniciando proceso INACTIVOS DIRECTA ===")
 
         COLS_BASE_INACTIVOS = [*self.cfg("maestra_inactivos_dir", "renombrar_cols")]
 
@@ -56,7 +56,7 @@ class ProcesoDirectaInactivos:
         )
 
         # Eliminar duplicados por orden de prioridad cód vendedor.
-        df_maes_inac_fil = proy_ft.eliminar_duplicados_por_prioridad(
+        df_maes_inac_fil = eliminar_duplicados_por_prioridad(
             df=df_maes_inac,
             col_clave=self.cfg_cols("cod_cliente"),
             col_prioridad=self.cfg_cols("funcion_inter"),
@@ -82,16 +82,13 @@ class ProcesoDirectaInactivos:
         # Extraer la tabla de tipologías del diccionario de drivers
         drv_tipologias = self.dict_drivers.get("Tipologías")
 
-        #  Diccionario con las configuraciones de columnas
-        par_cols = self.cfg("maestra_inactivos_dir", "par_cols_merge_drv_tipologia")
-
         df_maes_inac_fil_copy = df_maes_inac_fil.copy()
 
         # Lógica de negocio merge sucesivos con el drv_tipologias usando la configuración establecida.
-        df_maes_inac_merge = proy_ft.merge_con_tipologia(
-            df_base=df_maes_inac_fil_copy,
-            drv_tipologia=drv_tipologias,
-            par_cols=par_cols,
+        df_maes_inac_merge = tf.pd_left_merge_two_keys(
+            base_left=df_maes_inac_fil_copy,
+            base_right=drv_tipologias,
+            left_key=self.cfg_cols("cod_tipologia"),
         )
 
         # Traer información de driver regional
@@ -166,9 +163,11 @@ class ProcesoDirectaInactivos:
             df=df_maes_inac_merge,
             cols_elegidas=cols_finales,
         )
+        df_base_completa_select.loc[:, "Barrio"] = self.cfg_cols("valor_nulo")
 
         gf.exportar_a_excel(
-            ruta_archivo=self.cfg("path_guardado"), df=df_base_completa_select
+            ruta_archivo=self.cfg("maestra_inactivos_indir", "path_guardado"),
+            df=df_base_completa_select,
         )
 
         logger.info("=== Proceso Directa finalizado ===\n")

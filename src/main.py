@@ -10,6 +10,7 @@ from Controllers.process import (
     directa_controller,
     indirecta_controller,
     inactivos_dir_controller,
+    inactivos_indir_controller,
 )
 
 
@@ -44,6 +45,7 @@ class Aplicacion:
         self._directa = None
         self._indirecta = None
         self._inactivos_directa = None
+        self._inactivos_indirecta = None
         self._drivers = None
 
     # Inicialización de procesos
@@ -56,13 +58,14 @@ class Aplicacion:
             cfg_drivers = self.config_view("insumos", "drivers")
 
             # Validacion de columnas para todas las hojas del driver.
+            dict_driver_df = gf.lectura_simple_excel(
+                dir_insumo=cfg_drivers["path"],
+                nom_insumo=cfg_drivers["nom_base"],
+            )
             for cada_hoja in cfg_drivers["nom_hojas"]:
 
-                driver_df = gf.lectura_simple_excel(
-                    dir_insumo=cfg_drivers["path"],
-                    nom_insumo=cfg_drivers["nom_base"],
-                    nom_hoja=cada_hoja,
-                )
+                driver_df = dict_driver_df[cada_hoja]
+
                 dqf.verificar_columnas(
                     df=driver_df,
                     columnas_esperadas=cfg_drivers["cols"][cada_hoja],
@@ -105,6 +108,20 @@ class Aplicacion:
             )
         return self._inactivos_directa
 
+    @property
+    def inactivos_indirecta(self):
+        """Devuelve una instancia de ProcesoIndirecta solo al primer acceso."""
+        if self._inactivos_indirecta is None:
+            cfg_inactivos_indirecta = self.config_view("insumos", "indirecta")
+            self._inactivos_indirecta = (
+                inactivos_indir_controller.ProcesoIndirectaInactivos(
+                    cfg_inactivos_indirecta,
+                    cfg_cols=self.cfg_cols,
+                    dict_drivers=self.drivers,
+                )
+            )
+        return self._inactivos_indirecta
+
     @gf.registro_tiempo
     def ejecutar_parcial(self, proceso: str):
         """Ejecuta parcialmente un proceso específico."""
@@ -114,6 +131,8 @@ class Aplicacion:
             self.indirecta.ejecutar()
         elif proceso == "inactivos_directa":
             self.inactivos_directa.ejecutar()
+        elif proceso == "inactivos_indirecta":
+            self.inactivos_indirecta.ejecutar()
         else:
             raise ValueError(f"Proceso '{proceso}' no reconocido.")
 
@@ -123,6 +142,7 @@ class Aplicacion:
         self.directa.ejecutar()
         self.indirecta.ejecutar()
         self.inactivos_directa.ejecutar()
+        self.inactivos_indirecta.ejecutar()
 
 
 if __name__ == "__main__":
@@ -151,6 +171,17 @@ if __name__ == "__main__":
     dqf.resolve_existing_file(
         base_dir=path_insumos_indir,
         filename=cfg_insumos.require("indirecta", "base_inicio_mes_indir", "nom_base"),
+    )
+
+    dqf.resolve_existing_file(
+        base_dir=path_insumos_dir,
+        filename=cfg_insumos.require("directa", "maestra_inactivos_dir", "nom_base"),
+    )
+    dqf.resolve_existing_file(
+        base_dir=path_insumos_indir,
+        filename=cfg_insumos.require(
+            "indirecta", "maestra_inactivos_indir", "nom_base"
+        ),
     )
 
     dqf.resolve_existing_file(

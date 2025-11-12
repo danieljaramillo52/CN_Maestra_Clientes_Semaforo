@@ -155,7 +155,7 @@ def lectura_insumos_excel(
             usecols=cols,
         )
 
-        mensaje = f"Lectura de {nom_insumo} Hoja: {nom_hoja} completada con éxito"
+        mensaje = f"Lectura de '{nom_insumo}' Hoja: '{nom_hoja}' completada con éxito"
         return base_leida, mensaje
 
     except Exception as e:

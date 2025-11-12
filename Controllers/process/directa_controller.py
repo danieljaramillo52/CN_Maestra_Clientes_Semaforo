@@ -4,7 +4,7 @@ from Utils.data_quality_functions import verificar_columnas
 from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
-import Utils.proyect_functions as proy_ft
+from Utils.proyect_functions import eliminar_duplicados_por_prioridad
 
 
 class ProcesoDirecta:
@@ -63,7 +63,6 @@ class ProcesoDirecta:
             nom_hoja=self.cfg("universo_directa", "nom_hoja"),
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
-            # modo_pruebas=True,
         )
 
         df_ini_mes = gf.lectura_insumos_excel(
@@ -71,7 +70,6 @@ class ProcesoDirecta:
             nom_insumo=self.cfg("base_inicio_mes_dir", "nom_base"),
             nom_hoja=self.cfg("base_inicio_mes_dir", "nom_hoja"),
             cols=COLS_BASE_IN_MES,
-            # modo_pruebas=True,
         )
 
         df_ini_mes = tf.renombrar_columnas_con_diccionario(
@@ -84,13 +82,13 @@ class ProcesoDirecta:
             cols_to_rename=self.cfg("universo_directa", "renombrar_cols"),
         )
         # Eliminar duplicados por orden de prioridad cód vendedor.
-        df_ini_mes_fil = proy_ft.eliminar_duplicados_por_prioridad(
+        df_ini_mes_fil = eliminar_duplicados_por_prioridad(
             df=df_ini_mes,
             col_clave=self.cfg_cols("cod_cliente"),
             col_prioridad=self.cfg_cols("funcion_inter"),
             orden_prioridad=self.cfg("base_inicio_mes_dir", "orden_prioridad_jv_vend"),
         )
-        df_unviverso_fil = proy_ft.eliminar_duplicados_por_prioridad(
+        df_unviverso_fil = eliminar_duplicados_por_prioridad(
             df=df_unviverso,
             col_clave=self.cfg_cols("cod_cliente"),
             col_prioridad=self.cfg_cols("funcion_inter"),
@@ -155,18 +153,20 @@ class ProcesoDirecta:
         # Extraer la tabla de tipologías del diccionario de drivers
         drv_tipologias = self.dict_drivers.get("Tipologías")
 
-        #  Diccionario con las configuraciones de columnas
-        par_cols = self.cfg("base_inicio_mes_dir", "par_cols_merge_drv_tipologia")
-
         df_ini_mes_ren_copy = df_ini_mes_fil.copy()
 
         # Lógica de negocio merge sucesivos con el drv_tipologias usando la configuración establecida.
-        df_ini_mes_merge = proy_ft.merge_con_tipologia(
-            df_base=df_ini_mes_ren_copy,
-            drv_tipologia=drv_tipologias,
-            par_cols=par_cols,
+        df_unviverso_fil = tf.pd_left_merge_two_keys(
+            base_left=df_unviverso_fil,
+            base_right=drv_tipologias,
+            left_key=self.cfg_cols("cod_tipologia"),
         )
 
+        df_ini_mes_merge = tf.pd_left_merge_two_keys(
+            base_left=df_ini_mes_ren_copy,
+            base_right=drv_tipologias,
+            left_key=self.cfg_cols("cod_tipologia"),
+        )
         # Traer información de driver regional
         drv_region = self.dict_drivers.get("Regionales")
 
