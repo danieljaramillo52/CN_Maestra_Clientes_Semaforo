@@ -61,7 +61,7 @@ class ProcesoIndirecta:
             nom_hoja=self.cfg("universo_indirecta", "nom_hoja"),
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
-            modo_pruebas=True,
+            # modo_pruebas=True,
         )
         df_unviverso_wtout_dup = df_unviverso.drop_duplicates()
 
@@ -70,7 +70,7 @@ class ProcesoIndirecta:
             nom_insumo=self.cfg("base_inicio_mes_indir", "nom_base"),
             nom_hoja=self.cfg("base_inicio_mes_indir", "nom_hoja"),
             cols=COLS_BASE_IN_MES,
-            modo_pruebas=True,
+            # modo_pruebas=True,
         )
 
         df_ini_mes_ren = tf.renombrar_columnas_con_diccionario(
