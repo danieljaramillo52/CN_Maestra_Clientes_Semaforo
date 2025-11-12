@@ -59,7 +59,7 @@ class ProcesoIndirectaInactivos:
             path=self.cfg("path"),
             nom_insumo=self.cfg("maestra_inactivos_amovil", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_amovil", "nom_hoja"),
-            modo_pruebas=True,
+            # modo_pruebas=True,
         )
 
         df_inac_amovil.columns = df_inac_amovil.columns.str.strip().str.upper()
@@ -73,7 +73,7 @@ class ProcesoIndirectaInactivos:
             nom_insumo=self.cfg("maestra_inactivos_indir", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_indir", "nom_hoja"),
             cols=COLS_DF_INAC_INDIR,
-            modo_pruebas=True,
+            # modo_pruebas=True,
         )
 
         df_inidir_inac_ren = tf.renombrar_columnas_con_diccionario(
@@ -233,4 +233,4 @@ class ProcesoIndirectaInactivos:
             df=df_final_select,
         )
 
-        logger.info("=== Proceso Indirecta finalizado ===\n")
+        logger.info("=== Proceso Indirecta Inactivos finalizado ===\n")

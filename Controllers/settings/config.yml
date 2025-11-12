@@ -177,7 +177,7 @@ insumos:
         "COD_REGION" : "Cód. Oficina de Ventas"
         <<: *cols_comunes_indirecta
       
-      path_guardado : "Resultados/maestra_inactivos_directa_final.xlsx"
+      path_guardado : "Resultados/maestra_inactivos_indirecta_final.xlsx"
       
     cols_finales : *cols_finales
 
