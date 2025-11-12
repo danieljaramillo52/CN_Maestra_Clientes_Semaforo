@@ -228,7 +228,7 @@ class ProcesoIndirectaInactivos:
 
         # Exportar resultados
         gf.exportar_a_excel(
-            ruta_archivo=self.cfg("maestra_inactivos_dir", "path_guardado"),
+            ruta_archivo=self.cfg("maestra_inactivos_indir", "path_guardado"),
             df=df_final_select,
         )
 

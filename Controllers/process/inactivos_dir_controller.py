@@ -166,7 +166,7 @@ class ProcesoDirectaInactivos:
         df_base_completa_select.loc[:, "Barrio"] = self.cfg_cols("valor_nulo")
 
         gf.exportar_a_excel(
-            ruta_archivo=self.cfg("maestra_inactivos_indir", "path_guardado"),
+            ruta_archivo=self.cfg("maestra_inactivos_dir", "path_guardado"),
             df=df_base_completa_select,
         )
 
