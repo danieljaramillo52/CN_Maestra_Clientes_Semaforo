@@ -47,7 +47,7 @@ class ProcesoDirectaInactivos:
             nom_insumo=self.cfg("maestra_inactivos_dir", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_dir", "nom_hoja"),
             cols=COLS_BASE_INACTIVOS,
-            modo_pruebas=True,
+            # modo_pruebas=True,
         )
 
         df_maes_inac = tf.renombrar_columnas_con_diccionario(
