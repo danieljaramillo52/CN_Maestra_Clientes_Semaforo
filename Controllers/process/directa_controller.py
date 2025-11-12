@@ -63,6 +63,7 @@ class ProcesoDirecta:
             nom_hoja=self.cfg("universo_directa", "nom_hoja"),
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
+            modo_pruebas=True,
         )
 
         df_ini_mes = gf.lectura_insumos_excel(
@@ -70,6 +71,7 @@ class ProcesoDirecta:
             nom_insumo=self.cfg("base_inicio_mes_dir", "nom_base"),
             nom_hoja=self.cfg("base_inicio_mes_dir", "nom_hoja"),
             cols=COLS_BASE_IN_MES,
+            modo_pruebas=True,
         )
 
         df_ini_mes = tf.renombrar_columnas_con_diccionario(

@@ -47,7 +47,7 @@ class ProcesoDirectaInactivos:
             nom_insumo=self.cfg("maestra_inactivos_dir", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_dir", "nom_hoja"),
             cols=COLS_BASE_INACTIVOS,
-            # modo_pruebas=True,
+            modo_pruebas=True,
         )
 
         df_maes_inac = tf.renombrar_columnas_con_diccionario(
@@ -157,7 +157,8 @@ class ProcesoDirectaInactivos:
 
         cols_finales = self.cfg("cols_finales")
 
-        cols_finales.remove(self.FUENTE)
+        if self.FUENTE in cols_finales:
+            cols_finales.remove(self.FUENTE)
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
             df=df_maes_inac_merge,
@@ -170,4 +171,4 @@ class ProcesoDirectaInactivos:
             df=df_base_completa_select,
         )
 
-        logger.info("=== Proceso Directa finalizado ===\n")
+        logger.info("=== Proceso Inactivos Indirecta finalizado ===\n")
