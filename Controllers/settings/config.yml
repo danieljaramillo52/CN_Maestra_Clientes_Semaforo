@@ -169,8 +169,6 @@ insumos:
         "COD_REGION" : "Cód. Oficina de Ventas"
         <<: *cols_comunes_indirecta
 
-      path_guardado_inac : "Resultados/maestra_inactivos_directa_final.xlsx" 
-
     maestra_inactivos_indir:
       nom_base: "Maestra Inactivos Indirecta.xlsx"
       nom_hoja: "Comercial Nutresa"
@@ -178,6 +176,8 @@ insumos:
         COD_CRM : "Cod Actual"
         "COD_REGION" : "Cód. Oficina de Ventas"
         <<: *cols_comunes_indirecta
+      
+      path_guardado_inac : "Resultados/maestra_inactivos_directa_final.xlsx"
       
     cols_finales : *cols_finales
 
