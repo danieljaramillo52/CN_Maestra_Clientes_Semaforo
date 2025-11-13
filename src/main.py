@@ -29,6 +29,9 @@ class Aplicacion:
         cfg_cols (dict): Diccionario de columnas globales definido en la configuración (`dict_cols`).
         _directa (ProcesoDirecta | None): Instancia del proceso Directa, creada al primer acceso.
         _indirecta (ProcesoIndirecta | None): Instancia del proceso Indirecta, creada al primer acceso.
+        _inactivos_directa (ProcesoDirectaInactivos | None): Instancia del proceso Directa "inactivos", creada al primer acceso.
+        _inactivos_directa (ProcesoIndirectaInactivos | None): Instancia del proceso Indirecta "inactivos", creada al primer acceso.
+
         _drivers (pandas.DataFrame | dict[str, pandas.DataFrame] | None): Datos de drivers cargados una sola vez.
 
     Methods:

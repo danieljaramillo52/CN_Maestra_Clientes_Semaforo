@@ -4,6 +4,7 @@ from Utils.data_quality_functions import verificar_columnas
 from typing import Dict
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
+from Utils.proyect_functions import agregar_conteo_duplicados
 
 
 class ProcesoIndirecta:
@@ -61,7 +62,7 @@ class ProcesoIndirecta:
             nom_hoja=self.cfg("universo_indirecta", "nom_hoja"),
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
         df_unviverso_wtout_dup = df_unviverso.drop_duplicates()
 
@@ -70,7 +71,7 @@ class ProcesoIndirecta:
             nom_insumo=self.cfg("base_inicio_mes_indir", "nom_base"),
             nom_hoja=self.cfg("base_inicio_mes_indir", "nom_hoja"),
             cols=COLS_BASE_IN_MES,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_ini_mes_ren = tf.renombrar_columnas_con_diccionario(
@@ -110,11 +111,35 @@ class ProcesoIndirecta:
             ],
             how="left",
         )
-
+        # Crear columna cliente.
+        df_ini_mes_ren = tf.concatenar_columnas_pd(
+            df=df_ini_mes_ren,
+            cols_elegidas=[
+                self.cfg_cols("cod_jefe_vtas"),
+                self.cfg_cols("cod_cliente"),
+            ],
+            nueva_columna=self.cfg_cols("cliente"),
+        )
+        df_unviverso_merge = tf.concatenar_columnas_pd(
+            df=df_unviverso_merge,
+            cols_elegidas=[
+                self.cfg_cols("cod_jefe_vtas"),
+                self.cfg_cols("cod_cliente"),
+            ],
+            nueva_columna=self.cfg_cols("cliente"),
+        )
         # Tomar solo clientes que estan en base inicio mes y no en universo.
         df_ini_mes_ren = df_ini_mes_ren[
-            ~df_ini_mes_ren["Cod Cliente"].isin(df_unviverso_merge["Cod Cliente"])
+            ~df_ini_mes_ren[self.cfg_cols("cliente")].isin(
+                df_unviverso_merge[self.cfg_cols("cliente")]
+            )
         ]
+
+        df_unviverso_merge.sort_values(by=self.cfg_cols["cod_vendedor"], ascending=True)
+
+        df_unviverso_merge = df_unviverso_merge.drop_duplicates(
+            subset=[self.cfg_cols("cliente")]
+        )
 
         dict_reemplazos_jv = gf.crear_diccionario_desde_dataframe(
             df=df_unviverso_merge,
@@ -214,16 +239,6 @@ class ProcesoIndirecta:
             objs=[df_unviverso_merge, df_ini_mes_merge_reg], join="inner"
         )
 
-        # Crear columna cliente.
-        df_base_completa = tf.concatenar_columnas_pd(
-            df=df_base_completa,
-            cols_elegidas=[
-                self.cfg_cols("cod_jefe_vtas"),
-                self.cfg_cols("cod_cliente"),
-            ],
-            nueva_columna=self.cfg_cols("cliente"),
-        )
-
         # Ajustar Nulos razón social.
         df_base_completa[self.cfg_cols("nombre_comercial")] = df_base_completa[
             self.cfg_cols("nombre_comercial")
@@ -280,6 +295,12 @@ class ProcesoIndirecta:
         df_nulos_select = tf.seleccionar_columnas_pd(
             df=df_nulos_mun,
             cols_elegidas=self.cfg("cols_finales") + [self.cfg_cols("cod_poblacion")],
+        )
+
+        df_final_select = agregar_conteo_duplicados(
+            df=df_final_select,
+            col=self.cfg_cols("cliente"),
+            col_salida="duplicados",
         )
 
         # Exportar resultados

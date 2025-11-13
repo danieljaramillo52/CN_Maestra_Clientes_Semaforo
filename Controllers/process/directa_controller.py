@@ -4,7 +4,10 @@ from Utils.data_quality_functions import verificar_columnas
 from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
-from Utils.proyect_functions import eliminar_duplicados_por_prioridad
+from Utils.proyect_functions import (
+    eliminar_duplicados_por_prioridad,
+    agregar_conteo_duplicados,
+)
 
 
 class ProcesoDirecta:
@@ -63,7 +66,7 @@ class ProcesoDirecta:
             nom_hoja=self.cfg("universo_directa", "nom_hoja"),
             engine="pyxlsb",
             cols=COLS_UNIVERSO,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_ini_mes = gf.lectura_insumos_excel(
@@ -71,7 +74,7 @@ class ProcesoDirecta:
             nom_insumo=self.cfg("base_inicio_mes_dir", "nom_base"),
             nom_hoja=self.cfg("base_inicio_mes_dir", "nom_hoja"),
             cols=COLS_BASE_IN_MES,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_ini_mes = tf.renombrar_columnas_con_diccionario(
@@ -172,6 +175,12 @@ class ProcesoDirecta:
         # Traer información de driver regional
         drv_region = self.dict_drivers.get("Regionales")
 
+        df_unviverso_fil = tf.pd_left_merge_two_keys(
+            base_left=df_unviverso_fil,
+            base_right=drv_region,
+            left_key=self.cfg_cols("cod_oficina"),
+        )
+
         df_ini_mes_merge_reg = tf.pd_left_merge_two_keys(
             base_left=df_ini_mes_merge,
             base_right=drv_region,
@@ -265,6 +274,14 @@ class ProcesoDirecta:
 
         df_base_completa_select = tf.seleccionar_columnas_pd(
             df=df_base_completa, cols_elegidas=self.cfg("cols_finales")
+        )
+
+        df_base_completa_select = df_base_completa_select.copy()
+
+        df_base_completa_select = agregar_conteo_duplicados(
+            df=df_base_completa_select,
+            col=self.cfg_cols("cliente"),
+            col_salida="duplicados",
         )
 
         gf.exportar_a_excel(

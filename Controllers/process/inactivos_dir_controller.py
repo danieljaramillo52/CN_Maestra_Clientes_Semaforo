@@ -4,7 +4,10 @@ from Utils.data_quality_functions import verificar_columnas
 from pandas import DataFrame, merge, concat
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
-from Utils.proyect_functions import eliminar_duplicados_por_prioridad
+from Utils.proyect_functions import (
+    eliminar_duplicados_por_prioridad,
+    agregar_conteo_duplicados,
+)
 
 
 class ProcesoDirectaInactivos:
@@ -47,7 +50,7 @@ class ProcesoDirectaInactivos:
             nom_insumo=self.cfg("maestra_inactivos_dir", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_dir", "nom_hoja"),
             cols=COLS_BASE_INACTIVOS,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_maes_inac = tf.renombrar_columnas_con_diccionario(
@@ -165,6 +168,12 @@ class ProcesoDirectaInactivos:
             cols_elegidas=cols_finales,
         )
         df_base_completa_select.loc[:, "Barrio"] = self.cfg_cols("valor_nulo")
+
+        df_base_completa_select = agregar_conteo_duplicados(
+            df=df_base_completa_select,
+            col=self.cfg_cols("cliente"),
+            col_salida="duplicados",
+        )
 
         gf.exportar_a_excel(
             ruta_archivo=self.cfg("maestra_inactivos_dir", "path_guardado"),

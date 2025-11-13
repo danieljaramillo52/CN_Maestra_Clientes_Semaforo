@@ -21,16 +21,18 @@ Insumos/
 ├─ Directa/
 │  ├─ Base Inicio Mes - Directa.xlsx
 │  ├─ Universo de Clientes - Directa.xlsx
-│  └─ Insumos_directa.txt         # Manifiesto: lista de archivos a consumir para Directa
+│  └─ Maestra Inactivos Directa.xlsx
+│  └─ Insumos_directa.txt  # Manifiesto: archivos a consumir para Directa
 │
 ├─ Drivers/
 │  ├─ Drivers Universos.xlsx
-│  └─ drivers.txt                 # Manifiesto: drivers/hojas a usar
+│  └─ drivers.txt   # Manifiesto: drivers/hojas a usar
 │
 └─ Indirecta/
    ├─ Base Inicio Mes - Indirecta.xlsx
    ├─ Universo de Clientes - Indirecta.xlsx
-   └─ Insumos Indirecta.txt       # Manifiesto: lista de archivos a consumir para Indirecta
+   ├─ Maestra Inactivos Directa.xlsx
+   └─ Insumos Indirecta.txt # Manifiesto: archivos a consumir para Indirecta
 ```
 > **Manifiestos (`*.txt`)**: una ruta/archivo por línea (relativa a la carpeta). contiene los insumos que correcponden a cada carpeta. (Consulta / puede eliminarse)
 
@@ -41,6 +43,8 @@ Insumos/
 |---|---|
 | `universo_directa_completo.xlsx` | Universo Directa consolidado y normalizado. |
 | `universo_indirecta_completo.xlsx` | Universo Indirecta consolidado y normalizado. |
+| `maestra_inactivos_directa_final.xlsx` | Universo Directa de inactivos consolidado y normalizado. |
+| `maestra_inactivos_indirecta_final.xlsx` | Universo Indirecta de inactivos consolidado y normalizado. |
 | `df_municipios_nulos.xlsx` | Registros con **faltantes** críticos de municipio/departamento para revisión. |
 | `Resultados.txt` |Lista de resultados esperados de ejecución. (Consulta / Se puede eliminar)
 

@@ -2,7 +2,7 @@
 from Utils.general_functions import registro_tiempo
 from pandas import DataFrame
 from loguru import logger
-from typing import List
+from typing import List, Dict, Optional
 
 
 @registro_tiempo
@@ -62,3 +62,43 @@ def eliminar_duplicados_por_prioridad(
     except Exception as e:
         logger.critical(f"Error al eliminar duplicados según jerarquía: {e}")
         return df
+
+
+def agregar_conteo_duplicados(
+    df: DataFrame,
+    col: str,
+    col_salida: str = "duplicados",
+    incluir_nan: bool = False,
+    cfg_cols: Optional[Dict[str, str]] = None,
+) -> DataFrame:
+    """
+    Agrega a un DataFrame una columna con el número de repeticiones de cada valor de otra columna.
+
+    Descripción:
+        Retorna una **copia** de `df` con una nueva columna `col_salida` que indica,
+        para cada fila, cuántas veces aparece el valor de `col` en todo el DataFrame.
+        Se usa `.copy()` para evitar `SettingWithCopyWarning`.
+
+    Args:
+        df (pd.DataFrame): DataFrame de entrada.
+        col (str): Nombre de la columna a contar. Si se provee `cfg_cols` y `col` existe
+            como clave en ese diccionario, se usará el nombre físico `cfg_cols[col]`.
+        col_salida (str, opcional): Nombre de la columna resultante con el conteo. Por defecto, "duplicados".
+        incluir_nan (bool, opcional): Si `True`, cuenta también los NaN como grupo (usa `dropna=False`). Por defecto, `False`.
+        cfg_cols (dict[str, str] | None, opcional): Mapeo lógico→físico de columnas. Por defecto, `None`.
+
+    Returns:
+        pd.DataFrame: Copia de `df` con la columna `col_salida` añadida.
+
+    Ejemplo:
+        >>> df2 = agregar_conteo_duplicados(df, col="cliente", col_salida="veces")
+        >>> # Con mapeo lógico→físico:
+        >>> df2 = agregar_conteo_duplicados(df, col="cliente", cfg_cols={"cliente": "cod_cliente"})
+    """
+    col_fisica = (cfg_cols or {}).get(col, col)
+
+    dfx = df.copy()
+    dfx.loc[:, col_salida] = dfx.groupby(col_fisica, dropna=incluir_nan)[
+        col_fisica
+    ].transform("size")
+    return dfx

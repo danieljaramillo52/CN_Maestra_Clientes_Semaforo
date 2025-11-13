@@ -2,7 +2,7 @@ from loguru import logger
 from functools import wraps
 from datetime import timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple
 import pandas as pd
 import yaml
 import time
@@ -203,6 +203,15 @@ def lectura_simple_excel(
         sys.exit(1)
 
 
+def escapar_formulas_excel(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Añade un apóstrofo inicial a cadenas que empiezan por '='
+    para que Excel las trate como texto.
+    """
+    df = df.copy()
+    return df.map(lambda x: f"'{x}" if isinstance(x, str) and x.startswith("=") else x)
+
+
 def crear_diccionario_desde_dataframe(
     df: pd.DataFrame, col_clave: str, col_valor: str
 ) -> dict:
@@ -271,8 +280,6 @@ def menu(app):
         try:
             accion()
             print("✔ Proceso finalizado.")
-        except KeyboardInterrupt:
-            print("\nInterrumpido por el usuario.")
         except Exception as e:
             # Muestra error breve; puedes loguear detalles con logger si quieres
             print(f"✖ Error al ejecutar la opción {opcion}: {e}")

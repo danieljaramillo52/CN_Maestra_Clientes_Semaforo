@@ -4,6 +4,7 @@ from Utils.data_quality_functions import verificar_columnas
 from typing import Dict
 import Utils.general_functions as gf
 import Utils.transformation_functions as tf
+from Utils.proyect_functions import agregar_conteo_duplicados
 
 
 class ProcesoIndirectaInactivos:
@@ -59,7 +60,7 @@ class ProcesoIndirectaInactivos:
             path=self.cfg("path"),
             nom_insumo=self.cfg("maestra_inactivos_amovil", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_amovil", "nom_hoja"),
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_inac_amovil.columns = df_inac_amovil.columns.str.strip().str.upper()
@@ -73,7 +74,7 @@ class ProcesoIndirectaInactivos:
             nom_insumo=self.cfg("maestra_inactivos_indir", "nom_base"),
             nom_hoja=self.cfg("maestra_inactivos_indir", "nom_hoja"),
             cols=COLS_DF_INAC_INDIR,
-            # modo_pruebas=True,
+            modo_pruebas=False,
         )
 
         df_inidir_inac_ren = tf.renombrar_columnas_con_diccionario(
@@ -223,14 +224,20 @@ class ProcesoIndirectaInactivos:
             cols_finales.remove(self.FUENTE)
 
         # Seleccionar cols finales
-        df_final_select = tf.seleccionar_columnas_pd(
+        df_base_completa_select = tf.seleccionar_columnas_pd(
             df=df_base_completa, cols_elegidas=self.cfg("cols_finales")
         )
 
+        df_base_completa_select = agregar_conteo_duplicados(
+            df=df_base_completa_select,
+            col=self.cfg_cols("cliente"),
+            col_salida="duplicados",
+        )
+
+        df_final_select = gf.escapar_formulas_excel(df_base_completa_select)
         # Exportar resultados
         gf.exportar_a_excel(
             ruta_archivo=self.cfg("maestra_inactivos_indir", "path_guardado"),
             df=df_final_select,
         )
-
         logger.info("=== Proceso Indirecta Inactivos finalizado ===\n")
